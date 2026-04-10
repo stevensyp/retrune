@@ -68,7 +68,7 @@ YouTube, TikTok, Instagram, Twitter/X, Reddit, Facebook, Vimeo, Twitch, Dailymot
 Optional server-side environment variables:
 
 - `ASSEMBLYAI_API_KEY` enables transcript fallback beyond YouTube captions
-- `GEMINI_API_FREE_KEY` enables Gemini cleanup for YouTube auto captions
+- `GOOGLE_API_FREE` enables Gemini cleanup for YouTube auto captions
 - `YTDLP_BIN` overrides the `yt-dlp` executable
 - `FFMPEG_BIN` overrides the `ffmpeg` executable
 

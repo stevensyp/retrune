@@ -17,7 +17,7 @@ from urllib import parse, request
 YTDLP_BIN = os.environ.get("YTDLP_BIN", "yt-dlp")
 FFMPEG_BIN = os.environ.get("FFMPEG_BIN", "ffmpeg")
 ASSEMBLYAI_API_KEY = os.environ.get("ASSEMBLYAI_API_KEY", "").strip()
-GEMINI_API_FREE_KEY = os.environ.get("GEMINI_API_FREE_KEY", "").strip()
+GOOGLE_API_FREE = os.environ.get("GOOGLE_API_FREE", "").strip()
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite-preview-09-2025")
 
 MAX_ASSEMBLYAI_JOBS = 5
@@ -331,7 +331,7 @@ def resolve_input(raw_input: str) -> Dict:
 def capabilities_payload() -> Dict:
     return {
         "assemblyai": bool(ASSEMBLYAI_API_KEY),
-        "gemini": bool(GEMINI_API_FREE_KEY),
+        "gemini": bool(GOOGLE_API_FREE),
         "formats": {
             "text": ["txt", "md", "json"],
             "audio": ["mp3", "wav"],
@@ -649,7 +649,7 @@ def produce_transcript(cfg: Dict, item: Dict, tmp_dir: Path, source_audio: Optio
     for source in sources:
         try:
             text = download_youtube_transcript(item, tmp_dir, source == "youtube_auto")
-            if source == "youtube_auto" and cfg.get("gemini_cleanup") and GEMINI_API_FREE_KEY:
+            if source == "youtube_auto" and cfg.get("gemini_cleanup") and GOOGLE_API_FREE:
                 text = cleanup_with_gemini(item, source, text)
             return source, text, source_audio
         except Exception:
@@ -945,7 +945,7 @@ def cleanup_with_gemini(item: Dict, source: str, text: str) -> str:
     )
     url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{GEMINI_MODEL}:generateContent?key={parse.quote(GEMINI_API_FREE_KEY)}"
+        f"{GEMINI_MODEL}:generateContent?key={parse.quote(GOOGLE_API_FREE)}"
     )
     body = json.dumps(
         {
