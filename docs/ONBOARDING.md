@@ -1,12 +1,12 @@
 # ReClip Onboarding
 
-> Practical onboarding for engineers working on the `retrune` fork of ReClip, a small self-hosted media downloader built with Flask and a single-file frontend.
+> Practical onboarding for engineers working on `retrune`, a self-hosted media download and export web app built with Flask and a single-file frontend.
 
 ## What This Repo Is
 
-This repository is a lightweight web app for downloading media through `yt-dlp` and `ffmpeg`. The app serves one HTML page, exposes a small JSON API, and stores active job state in memory while downloads run in background threads.
+This repository is a lightweight web app for downloading and exporting media through `yt-dlp` and `ffmpeg`. The app serves one HTML page, exposes a JSON job API, and stores active job state in memory while downloads and exports run in background threads.
 
-This fork currently tracks the upstream ReClip project shape closely:
+This fork currently tracks the upstream ReClip project shape while adding a richer Python export engine:
 
 - `origin`: `https://github.com/stevensyp/retrune.git`
 - `upstream`: `https://github.com/averygan/reclip.git`
@@ -19,8 +19,10 @@ This fork currently tracks the upstream ReClip project shape closely:
 |------|-------|
 | `python3` | Required for local runs and `reclip.sh` |
 | `yt-dlp` | Required for metadata fetches and downloads |
-| `ffmpeg` | Required for audio extraction and media merging |
+| `ffmpeg` | Required for audio extraction, clipping, and media conversion |
 | Docker | Optional, for containerized runs |
+| AssemblyAI key | Optional, enables transcript fallback beyond YouTube captions |
+| Gemini key | Optional, enables Gemini cleanup for YouTube auto captions |
 
 ### Fastest Local Setup
 
@@ -30,6 +32,15 @@ brew install yt-dlp ffmpeg
 ```
 
 `reclip.sh` checks for `python3`, `yt-dlp`, and `ffmpeg`, creates `venv/` on first run, installs `flask` and `yt-dlp`, and starts the Flask server on port `8899`.
+
+Optional server-side environment variables:
+
+```bash
+export ASSEMBLYAI_API_KEY=...
+export GEMINI_API_FREE_KEY=...
+export YTDLP_BIN=yt-dlp
+export FFMPEG_BIN=ffmpeg
+```
 
 ### Manual Local Setup
 
@@ -55,8 +66,9 @@ The Docker image installs `ffmpeg`, copies the app into `/app`, sets `HOST=0.0.0
 
 1. Start the app with either `./reclip.sh`, `python3 app.py`, or Docker.
 2. Open `http://127.0.0.1:8899`.
-3. Paste a supported URL and click `Fetch`.
-4. Confirm the page renders a card with title, thumbnail, and format options.
+3. Paste a supported media URL and click `Analyze Input`.
+4. Confirm the page renders a preview card with title, thumbnail, and format options.
+5. Start an export and confirm individual artifacts or a ZIP are available when complete.
 
 There is no automated test suite in this repo today, so manual verification is the main check.
 
@@ -71,36 +83,41 @@ Browser
 Flask app (`app.py`)
   |
   +-> `GET /` -> renders `templates/index.html`
-  +-> `POST /api/info` -> runs `yt-dlp -j` for metadata
-  +-> `POST /api/download` -> starts background download thread
-  +-> `GET /api/status/<job_id>` -> polls in-memory job state
-  +-> `GET /api/file/<job_id>` -> serves final file from `downloads/`
+  +-> `POST /api/resolve` -> detects input and previews media/channel data
+  +-> `POST /api/jobs` -> starts a background export job
+  +-> `GET /api/jobs/<job_id>` -> polls in-memory job state
+  +-> `GET /api/jobs/<job_id>/artifacts/<artifact_id>` -> serves one artifact
+  +-> `GET /api/jobs/<job_id>/zip` -> serves packaged export ZIP
+  +-> legacy `/api/info`, `/api/download`, `/api/status`, `/api/file`
 ```
 
 ### Runtime Model
 
-- The backend is a single Flask process in [`app.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/app.py).
-- Download jobs are tracked in a module-level `jobs` dictionary.
-- Each download runs in a daemon thread created by `/api/download`.
-- Files are written to `downloads/`, which is created at startup and ignored by Git.
+- The Flask routes live in [`app.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/app.py).
+- Export orchestration, `yt-dlp`, `ffmpeg`, AssemblyAI, Gemini, transcript, metadata, and ZIP behavior lives in [`export_engine.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/export_engine.py).
+- Jobs are tracked in memory by `JobStore`.
+- Each export runs in a daemon thread created by `/api/jobs`.
+- Files are written to `downloads/jobs/<job-id>/`, which is ignored by Git.
 - There is no database, queue, authentication layer, or persistent job history.
 
 ### Main Request Flow
 
-1. The user pastes one or more URLs into the page served from [`templates/index.html`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/templates/index.html).
-2. Frontend JavaScript calls `POST /api/info` to fetch metadata and available resolutions.
-3. When the user clicks download, the frontend calls `POST /api/download`.
-4. The backend spawns a thread that runs `yt-dlp` and optionally `ffmpeg`.
-5. The frontend polls `GET /api/status/<job_id>` until the job is `done`.
-6. The browser downloads the file from `GET /api/file/<job_id>`.
+1. The user pastes URLs, a YouTube handle, a channel ID, or a video ID into [`templates/index.html`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/templates/index.html).
+2. Frontend JavaScript calls `POST /api/resolve` to detect generic, bulk, YouTube video, or YouTube channel input.
+3. The UI reveals only relevant export controls.
+4. When the user starts an export, the frontend calls `POST /api/jobs`.
+5. The backend runs `yt-dlp`, `ffmpeg`, optional AssemblyAI, optional Gemini, metadata writing, and ZIP packaging through `export_engine.py`.
+6. The frontend polls `GET /api/jobs/<job_id>` and exposes individual artifacts plus a ZIP.
 
 ## Tech Stack
 
 | Layer | Technology | Notes |
 |------|------------|-------|
-| Backend | Flask | Single app file, no blueprints |
+| Backend | Flask | Thin route layer over export services |
 | Frontend | Vanilla HTML/CSS/JS | Embedded in one template |
 | Media engine | `yt-dlp` + `ffmpeg` | External system dependencies |
+| Transcription | YouTube captions + AssemblyAI | AssemblyAI is optional and env-gated |
+| Caption cleanup | Gemini | Optional and env-gated |
 | Packaging | `venv` script + Docker | No build pipeline |
 | Assets | Static image/video previews | Marketing/demo only |
 
@@ -108,78 +125,67 @@ Flask app (`app.py`)
 
 | Path | Purpose |
 |------|---------|
-| [`app.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/app.py) | Flask app, API routes, download orchestration |
+| [`app.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/app.py) | Flask app and API routes |
+| [`export_engine.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/export_engine.py) | Export orchestration, integrations, transcripts, metadata, ZIP packaging |
 | [`templates/index.html`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/templates/index.html) | Entire UI, styling, and client-side logic |
 | [`reclip.sh`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/reclip.sh) | Local bootstrap script for first-run setup |
 | [`requirements.txt`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/requirements.txt) | Python dependencies |
 | [`Dockerfile`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/Dockerfile) | Containerized runtime |
-| [`static/favicon.svg`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/static/favicon.svg) | Favicon asset |
-| [`assets/`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/assets) | README/demo assets |
 
 ## Common Developer Tasks
 
-### Change download behavior
+### Change Download Or Export Behavior
 
-Edit [`app.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/app.py) in:
+Edit [`export_engine.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/export_engine.py):
 
-- `run_download(...)` for format selection, output naming, and cleanup behavior
-- `get_info()` for metadata parsing and resolution filtering
+- `resolve_input(...)` for input detection and preview behavior
+- `process_item(...)` for per-item export behavior
+- `produce_transcript(...)` for transcript policy
+- `convert_audio(...)` and `convert_video(...)` for `ffmpeg` behavior
 
-### Change the UI
+### Change API Behavior
+
+Edit [`app.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/app.py). Keep routes thin and push reusable behavior into `export_engine.py` so future CLI/API entrypoints can share it.
+
+### Change The UI
 
 Edit [`templates/index.html`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/templates/index.html). The template contains:
 
 - the page markup
 - all CSS styles
-- all browser-side fetch, render, and polling logic
+- all browser-side resolve, start-job, polling, and artifact-link logic
 
 There is no frontend build step, so refresh-based iteration is enough.
-
-### Change local startup behavior
-
-Edit [`reclip.sh`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/reclip.sh) if you need to:
-
-- add prerequisite checks
-- change first-run dependency installation
-- change the default port export
-
-### Change container behavior
-
-Edit [`Dockerfile`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/Dockerfile) if you need to:
-
-- install extra system packages
-- change the base Python image
-- expose different runtime defaults
 
 ## Debugging Guide
 
 ### Common Failure Modes
 
 - `yt-dlp: command not found`
-  Install `yt-dlp` locally, or use the Docker image.
+  Install `yt-dlp`, use the Docker image, or set `YTDLP_BIN`.
 
 - `ffmpeg: command not found`
-  Install `ffmpeg`; MP3 extraction and merged video downloads depend on it.
+  Install `ffmpeg`, use the Docker image, or set `FFMPEG_BIN`.
 
 - Fetch succeeds but download fails
   Check the final stderr line returned by `yt-dlp` in the UI error state.
 
 - Job disappears after restart
-  Expected: job state only lives in the in-memory `jobs` dict.
+  Expected: job state only lives in the in-memory `JobStore`.
 
-- File is downloaded with an odd name
-  Filename generation is derived from the title and trimmed aggressively for safety.
+- Transcript fallback fails
+  `ASSEMBLYAI_API_KEY` must be configured when YouTube captions are unavailable or AssemblyAI-first fallback is selected.
 
 ### Useful Places To Inspect
 
 - Backend logs: the terminal running Flask
 - API behavior: browser devtools network tab
-- Generated files: `downloads/`
+- Generated files: `downloads/jobs/`
 
 ### Quick Syntax Checks
 
 ```bash
-python3 -m py_compile app.py
+python3 -m py_compile app.py export_engine.py
 bash -n reclip.sh
 ```
 
@@ -190,29 +196,30 @@ These are lightweight checks when you want confidence without adding test infras
 ### What To Preserve
 
 - Keep the no-build, low-dependency shape unless there is a strong reason to expand it.
-- Preserve the simple request flow between the single template and the small Flask API.
+- Preserve the simple request flow between the single template, Flask API, and reusable Python export engine.
 - Treat external command execution as the main failure surface and handle errors clearly.
+- Keep optional AI integrations server-side; never collect API keys in the browser.
 
 ### Review Checklist
 
 - Local startup still works through `./reclip.sh` or Docker.
 - The homepage still loads on `localhost:8899`.
-- Metadata fetch still returns title, thumbnail, and format choices.
-- Download completion still yields a real file in `downloads/`.
+- Analyze still returns title, thumbnail, and format choices for generic URLs.
+- Export completion yields individual artifacts and a ZIP under `downloads/jobs/`.
 
 ## Audience Notes
 
 ### Junior Engineers
 
-- Start with [`app.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/app.py) first; most backend behavior lives there.
-- Read the fetch and polling calls in [`templates/index.html`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/templates/index.html) after that so the end-to-end flow is clear.
+- Start with [`app.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/app.py) for routes, then [`export_engine.py`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/export_engine.py) for behavior.
+- Read the resolve, start-job, polling, and artifact-link logic in [`templates/index.html`](/Users/steven/Library/Mobile%20Documents/com~apple~CloudDocs/Developer/retrune/templates/index.html) after that so the end-to-end flow is clear.
 
 ### Senior Engineers
 
-- The main architectural constraint is intentional simplicity: no persistence, no queue, no auth, no build system.
-- The main operational risks are external process management, temporary file handling, and in-memory state.
+- The main architectural constraint is intentional simplicity: no persistence, no queue, no auth, no frontend build system.
+- The main operational risks are external process management, temporary file handling, in-memory state, and server-side API key configuration.
 
 ### Contractors
 
-- Favor scoped edits in either `app.py` or `templates/index.html` rather than broad restructuring.
+- Favor scoped edits in `export_engine.py`, `app.py`, or `templates/index.html` rather than broad restructuring.
 - If you need to introduce new moving parts, document the reason because this repo is optimized for minimalism.
