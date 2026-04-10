@@ -57,6 +57,10 @@ YouTube, TikTok, Instagram, Twitter/X, Reddit, Facebook, Vimeo, Twitch, Dailymot
 - **Download engine:** [yt-dlp](https://github.com/yt-dlp/yt-dlp) + [ffmpeg](https://ffmpeg.org/)
 - **Dependencies:** 2 (Flask, yt-dlp)
 
+## Engineering Notes
+
+- [Onboarding guide](docs/ONBOARDING.md) for setup, architecture, and contribution guardrails
+
 ## Disclaimer
 
 This tool is intended for personal use only. Please respect copyright laws and the terms of service of the platforms you download from. The developers are not responsible for any misuse of this tool.
