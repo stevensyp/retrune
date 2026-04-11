@@ -45,11 +45,16 @@
     }
     button, input, select, textarea { font: inherit; }
     button { cursor: pointer; }
+    ::selection {
+      background: rgba(234, 95, 36, 0.22);
+      color: var(--ink);
+    }
 
     .shell {
       width: min(1180px, calc(100% - 32px));
       margin: 0 auto;
       padding: 42px 0 72px;
+      animation: page-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .hero {
       display: grid;
@@ -81,7 +86,9 @@
       border: 1.5px solid rgba(234, 95, 36, 0.34);
       border-radius: 50%;
       box-shadow: inset 0 0 0 26px rgba(234, 95, 36, 0.05);
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    .brand:hover::before { transform: translate(-10px, -8px) scale(1.04); }
     .kicker {
       display: inline-flex;
       gap: 8px;
@@ -94,6 +101,15 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
       background: rgba(255, 255, 255, 0.38);
+    }
+    .kicker::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(234, 95, 36, 0.11);
+      animation: live-dot 2.6s ease-in-out infinite;
     }
     .brand h1 {
       margin: 38px 0 14px;
@@ -129,7 +145,15 @@
     }
     .cap.on { color: var(--green); border-color: rgba(37, 116, 71, 0.34); }
 
-    .console { padding: 22px; }
+    .console {
+      padding: 22px;
+      transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+    }
+    .console.listening {
+      border-color: rgba(234, 95, 36, 0.42);
+      box-shadow: 0 28px 90px rgba(234, 95, 36, 0.16);
+      transform: translateY(-1px);
+    }
     label {
       display: block;
       margin-bottom: 8px;
@@ -149,11 +173,13 @@
       color: var(--ink);
       outline: none;
       line-height: 1.55;
+      transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
     }
     textarea:focus, input:focus, select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 4px rgba(234, 95, 36, 0.1);
     }
+    textarea:focus { transform: translateY(-1px); }
     .actions {
       display: flex;
       gap: 10px;
@@ -167,12 +193,16 @@
       color: var(--paper);
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      transition: transform 0.16s, background 0.16s, opacity 0.16s;
+      transition: transform 0.16s, background 0.16s, opacity 0.16s, box-shadow 0.16s;
     }
     .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(1px) scale(0.99); }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
     .btn.primary { flex: 1; background: var(--accent); }
-    .btn.primary:hover { background: var(--accent-dark); }
+    .btn.primary:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 10px 24px rgba(234, 95, 36, 0.22);
+    }
     .btn.ghost {
       border: 1.5px solid var(--line);
       background: transparent;
@@ -230,6 +260,7 @@
       background: #fffdf8;
       color: var(--ink);
       outline: none;
+      transition: border-color 0.16s, box-shadow 0.16s;
     }
     .toggle {
       display: flex;
@@ -240,6 +271,7 @@
       font-size: 0.78rem;
     }
     .toggle input { width: 17px; height: 17px; accent-color: var(--accent); }
+    .toggle input:checked { animation: tick-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
     .hidden { display: none !important; }
 
     .cards {
@@ -255,6 +287,12 @@
       border-radius: 18px;
       background: #fffdf8;
       animation: rise 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s, box-shadow 0.18s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(234, 95, 36, 0.32);
+      box-shadow: 0 14px 34px rgba(62, 43, 18, 0.08);
     }
     @keyframes rise {
       from { opacity: 0; transform: translateY(10px); }
@@ -305,6 +343,11 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
       text-decoration: none;
+      transition: transform 0.16s, border-color 0.16s, background 0.16s, color 0.16s;
+    }
+    .mini:hover {
+      transform: translateY(-1px);
+      border-color: rgba(234, 95, 36, 0.44);
     }
     .mini.hot { background: var(--ink); border-color: var(--ink); color: var(--paper); }
     .mini.good { color: var(--green); border-color: rgba(37, 116, 71, 0.35); }
@@ -336,7 +379,13 @@
       background: linear-gradient(90deg, var(--accent), #f4b24f);
       transition: width 0.28s ease;
     }
+    .statusbar.running .progress span {
+      background-size: 180% 100%;
+      animation: progress-sheen 1.35s linear infinite;
+    }
     .empty {
+      position: relative;
+      overflow: hidden;
       padding: 24px;
       border: 1.5px dashed var(--line);
       border-radius: 18px;
@@ -344,9 +393,26 @@
       line-height: 1.7;
       background: rgba(255,255,255,0.28);
     }
+    .empty strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--ink);
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+    }
+    .empty.loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.42), transparent 70%);
+      transform: translateX(-100%);
+      animation: sweep 1.25s ease-in-out infinite;
+    }
     .error {
       color: var(--red);
     }
+    .error.shake { animation: soft-shake 0.34s cubic-bezier(0.16, 1, 0.3, 1); }
     .footer {
       margin-top: 24px;
       color: var(--muted);
@@ -355,6 +421,85 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       line-height: 1.8;
+    }
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 20;
+      max-width: min(360px, calc(100vw - 36px));
+      padding: 12px 14px;
+      border: 1.5px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 250, 240, 0.94);
+      box-shadow: 0 18px 50px rgba(62, 43, 18, 0.18);
+      color: var(--ink);
+      font-size: 0.72rem;
+      line-height: 1.55;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .burst {
+      position: fixed;
+      left: 50%;
+      top: 48%;
+      z-index: 19;
+      pointer-events: none;
+    }
+    .spark {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--spark-color, var(--accent));
+      opacity: 0;
+      transform: rotate(var(--angle)) translateY(0) scale(0.7);
+      animation: spark-out 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes page-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes live-dot {
+      0%, 100% { transform: scale(0.84); opacity: 0.72; }
+      50% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes tick-pop {
+      0% { transform: scale(0.82); }
+      100% { transform: scale(1); }
+    }
+    @keyframes progress-sheen {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 180% 50%; }
+    }
+    @keyframes sweep {
+      to { transform: translateX(100%); }
+    }
+    @keyframes soft-shake {
+      0%, 100% { transform: translateX(0); }
+      35% { transform: translateX(-4px); }
+      70% { transform: translateX(3px); }
+    }
+    @keyframes spark-out {
+      0% { opacity: 0; transform: rotate(var(--angle)) translateY(0) scale(0.7); }
+      18% { opacity: 1; }
+      100% { opacity: 0; transform: rotate(var(--angle)) translateY(-84px) scale(0.15); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+      }
     }
 
     @media (max-width: 880px) {
@@ -513,7 +658,7 @@
             <div class="card-actions" id="jobArtifacts"></div>
           </div>
           <div id="cards" class="cards">
-            <div class="empty">Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.</div>
+            <div class="empty"><strong>Desk is clean</strong>Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.</div>
           </div>
         </div>
       </div>
@@ -521,6 +666,8 @@
 
     <div class="footer">YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Vimeo · Twitch · SoundCloud · 1000+ more</div>
   </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="burst" id="burst" aria-hidden="true"></div>
 
   <script>
     const state = {
@@ -529,9 +676,16 @@
       poll: null,
       capabilities: { assemblyai: false, gemini: false },
       selectedFormats: {},
+      lastCelebratedJob: null,
     };
 
     const $ = id => document.getElementById(id);
+    const loadingLines = [
+      ['Checking the signal', 'Resolving the input before yt-dlp takes the wheel...'],
+      ['Sorting export routes', 'Detecting whether this is a channel, a video, or a quick pull...'],
+      ['Looking for clean artifacts', 'Reading formats, captions, thumbnails, and metadata hints...'],
+      ['Keeping it local', 'Preparing the desk without sending work anywhere unexpected...'],
+    ];
 
     function esc(value) {
       const div = document.createElement('div');
@@ -558,6 +712,33 @@
       return text.length > 110 ? text.slice(0, 110) + '...' : text;
     }
 
+    function emptyState(title, body, extraClass = '') {
+      return `<div class="empty ${extraClass}"><strong>${esc(title)}</strong>${esc(body)}</div>`;
+    }
+
+    function toast(message) {
+      const el = $('toast');
+      el.textContent = message;
+      el.classList.add('show');
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => el.classList.remove('show'), 2800);
+    }
+
+    function celebrate() {
+      const root = $('burst');
+      root.innerHTML = '';
+      const colors = ['var(--accent)', '#f4b24f', 'var(--green)', 'var(--blue)'];
+      for (let i = 0; i < 18; i++) {
+        const spark = document.createElement('span');
+        spark.className = 'spark';
+        spark.style.setProperty('--angle', `${(360 / 18) * i}deg`);
+        spark.style.setProperty('--spark-color', colors[i % colors.length]);
+        spark.style.animationDelay = `${(i % 4) * 16}ms`;
+        root.appendChild(spark);
+      }
+      setTimeout(() => { root.innerHTML = ''; }, 900);
+    }
+
     async function loadCapabilities() {
       try {
         const res = await fetch('/api/capabilities');
@@ -570,12 +751,20 @@
 
     async function analyze() {
       const input = $('sourceInput').value.trim();
-      if (!input) return;
+      if (!input) {
+        toast('Paste a link, handle, channel ID, or video ID first.');
+        $('sourceInput').focus();
+        return;
+      }
+      const line = loadingLines[Math.floor(Math.random() * loadingLines.length)];
+      document.querySelector('.console').classList.add('listening');
       $('analyzeBtn').disabled = true;
       $('analyzeBtn').textContent = 'Analyzing...';
-      $('cards').innerHTML = '<div class="empty">Resolving media and reading available formats...</div>';
+      $('cards').innerHTML = emptyState(line[0], line[1], 'loading');
       $('jobStatus').classList.add('hidden');
+      $('jobStatus').classList.remove('running');
       state.job = null;
+      state.lastCelebratedJob = null;
       clearInterval(state.poll);
 
       try {
@@ -592,11 +781,13 @@
           if (item.formats && item.formats.length) state.selectedFormats[item.id] = item.formats[0].id;
         }
         renderResolved();
+        toast(data.kind === 'channel' ? 'Channel mode unlocked.' : 'Input analyzed. Choose the export shape.');
       } catch (err) {
         state.resolved = null;
-        $('cards').innerHTML = `<div class="empty error">${esc(friendlyError(err.message))}</div>`;
+        $('cards').innerHTML = emptyState('Signal lost', friendlyError(err.message), 'error shake');
         $('summary').textContent = 'Analyze failed.';
       } finally {
+        document.querySelector('.console').classList.remove('listening');
         $('analyzeBtn').disabled = false;
         $('analyzeBtn').textContent = 'Analyze Input';
         syncOptions();
@@ -698,6 +889,7 @@
       $('startBtn').disabled = true;
       $('startBtn').textContent = 'Starting...';
       $('jobStatus').classList.remove('hidden');
+      $('jobStatus').classList.add('running');
       $('jobMessage').textContent = 'Starting export';
       $('jobProgress').style.width = '2%';
       $('jobArtifacts').innerHTML = '';
@@ -710,8 +902,10 @@
         });
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error || 'Could not start job');
+        toast('Export queued. Artifacts will appear as they land.');
         pollJob(data.job_id);
       } catch (err) {
+        $('jobStatus').classList.remove('running');
         $('jobMessage').innerHTML = `<span class="error">${esc(friendlyError(err.message))}</span>`;
         $('startBtn').disabled = false;
         $('startBtn').textContent = 'Start Export';
@@ -728,11 +922,20 @@
           renderJob(job);
           if (['done', 'partial', 'error'].includes(job.status)) {
             clearInterval(state.poll);
+            $('jobStatus').classList.remove('running');
             $('startBtn').disabled = false;
             $('startBtn').textContent = state.resolved?.kind === 'channel' ? 'Start Channel Export' : 'Start Export';
+            if (job.status === 'error') {
+              toast('Export stopped. The error details are on the run desk.');
+            } else if (state.lastCelebratedJob !== job.id) {
+              state.lastCelebratedJob = job.id;
+              celebrate();
+              toast(job.status === 'partial' ? 'Run finished with a few bruises. Good artifacts are ready.' : 'Export complete. ZIP and artifacts are ready.');
+            }
           }
         } catch (err) {
           clearInterval(state.poll);
+          $('jobStatus').classList.remove('running');
           $('jobMessage').innerHTML = `<span class="error">Lost connection to server</span>`;
         }
       };
@@ -777,15 +980,21 @@
       state.resolved = null;
       state.job = null;
       state.selectedFormats = {};
+      state.lastCelebratedJob = null;
       clearInterval(state.poll);
-      $('cards').innerHTML = '<div class="empty">Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.</div>';
+      $('cards').innerHTML = emptyState('Desk is clean', 'Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.');
       $('summary').textContent = 'No input analyzed yet.';
       $('modeNote').textContent = 'Analyze input to unlock smart options.';
       $('jobStatus').classList.add('hidden');
+      $('jobStatus').classList.remove('running');
       $('startBtn').disabled = true;
+      toast('Desk cleared.');
       syncOptions();
     }
 
+    document.querySelector('.brand h1').addEventListener('dblclick', () => {
+      toast('Local-first, artifact-heavy, cloud-light. Good console.');
+    });
     $('analyzeBtn').addEventListener('click', analyze);
     $('clearBtn').addEventListener('click', clearAll);
     $('startBtn').addEventListener('click', () => startJob());
