@@ -3,846 +3,524 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ReClip — Export Studio</title>
+  <title>ReClip — Media Export Console</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Chivo+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <style>
     :root {
-      color-scheme: dark;
-      --bg: oklch(18% 0.035 55);
-      --bg-deep: oklch(13% 0.035 58);
-      --ink: oklch(94% 0.026 77);
-      --muted: oklch(72% 0.036 77);
-      --quiet: oklch(55% 0.034 75);
-      --panel: oklch(24% 0.04 58 / 0.82);
-      --panel-2: oklch(28% 0.045 62 / 0.9);
-      --line: oklch(47% 0.05 68 / 0.48);
-      --line-hot: oklch(76% 0.17 58 / 0.55);
-      --accent: oklch(72% 0.18 48);
-      --amber: oklch(83% 0.16 78);
-      --green: oklch(75% 0.16 146);
-      --red: oklch(68% 0.18 28);
-      --blue: oklch(74% 0.12 218);
-      --shadow: 0 30px 100px oklch(8% 0.02 55 / 0.5);
-      --radius-xl: 30px;
-      --radius-lg: 22px;
-      --radius-md: 15px;
-      --mx: 50%;
-      --my: 18%;
+      --ink: #272722;
+      --paper: #f2eee5;
+      --panel: #fffaf0;
+      --panel-strong: #fff4dc;
+      --line: #d9ccb7;
+      --muted: #85796a;
+      --accent: #ea5f24;
+      --accent-dark: #bd4618;
+      --blue: #225f7a;
+      --green: #257447;
+      --red: #b83f37;
+      --shadow: 0 24px 80px rgba(62, 43, 18, 0.14);
+      --radius: 22px;
     }
 
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       min-height: 100vh;
       color: var(--ink);
-      font-family: 'Chivo Mono', ui-monospace, monospace;
+      font-family: 'DM Mono', monospace;
       background:
-        radial-gradient(circle at var(--mx) var(--my), oklch(70% 0.18 48 / 0.16), transparent 19rem),
-        radial-gradient(circle at 16% 12%, oklch(56% 0.12 235 / 0.18), transparent 29rem),
-        radial-gradient(circle at 92% 86%, oklch(78% 0.15 125 / 0.11), transparent 23rem),
-        linear-gradient(145deg, var(--bg-deep), var(--bg) 42%, oklch(20% 0.04 72));
-      overflow-x: hidden;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.14;
-      background:
-        linear-gradient(90deg, transparent 31px, oklch(78% 0.05 70 / 0.12) 32px),
-        linear-gradient(transparent 31px, oklch(78% 0.05 70 / 0.1) 32px);
-      background-size: 32px 32px;
-      mask-image: radial-gradient(circle at 50% 22%, black, transparent 72%);
+        radial-gradient(circle at 9% 12%, rgba(234, 95, 36, 0.18), transparent 28rem),
+        radial-gradient(circle at 82% 4%, rgba(34, 95, 122, 0.14), transparent 30rem),
+        linear-gradient(135deg, #f8f2e6 0%, var(--paper) 45%, #ece1cf 100%);
     }
     body::after {
       content: '';
       position: fixed;
       inset: 0;
       pointer-events: none;
-      opacity: 0.045;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      mix-blend-mode: screen;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
     }
     button, input, select, textarea { font: inherit; }
-    button, a, select, input, textarea { -webkit-tap-highlight-color: transparent; }
     button { cursor: pointer; }
-    ::selection { background: oklch(72% 0.18 48 / 0.35); color: var(--ink); }
 
     .shell {
-      position: relative;
-      width: min(1320px, calc(100% - 28px));
+      width: min(1180px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 24px 0 72px;
-      z-index: 1;
+      padding: 42px 0 72px;
     }
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 16px;
-      animation: enter 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-    .sig {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: var(--muted);
-      font-size: 0.74rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-    .sig-mark {
-      width: 34px;
-      height: 34px;
+    .hero {
       display: grid;
-      place-items: center;
-      border: 1.5px solid var(--line-hot);
-      border-radius: 50%;
-      background: oklch(72% 0.18 48 / 0.12);
-      box-shadow: 0 0 28px oklch(72% 0.18 48 / 0.18);
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 22px;
+      align-items: stretch;
+      margin-bottom: 22px;
     }
-    .sig-mark::before {
-      content: '';
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 18px var(--accent);
-      animation: pulse 2.4s ease-in-out infinite;
-    }
-    .hintline {
-      color: var(--quiet);
-      font-size: 0.72rem;
-      text-align: right;
-    }
-
-    .studio {
-      display: grid;
-      grid-template-columns: 0.82fr 1.18fr;
-      gap: 18px;
-      align-items: start;
-    }
-    .mast, .deck, .panel {
-      border: 1px solid var(--line);
-      background:
-        linear-gradient(135deg, oklch(100% 0.02 80 / 0.085), transparent 42%),
-        var(--panel);
+    .brand, .console {
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 240, 0.78);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
+      backdrop-filter: blur(12px);
     }
-    .mast {
-      position: sticky;
-      top: 18px;
-      min-height: calc(100vh - 48px);
-      border-radius: var(--radius-xl);
-      padding: clamp(22px, 4vw, 42px);
+    .brand {
+      padding: 34px;
+      min-height: 360px;
+      position: relative;
       overflow: hidden;
-      animation: enter 0.62s 0.04s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
-    .mast::before {
+    .brand::before {
       content: '';
       position: absolute;
-      inset: auto -80px -120px auto;
-      width: 300px;
-      height: 300px;
-      border-radius: 44% 56% 52% 48%;
-      background:
-        radial-gradient(circle, oklch(72% 0.18 48 / 0.28), transparent 60%),
-        conic-gradient(from 120deg, transparent, oklch(84% 0.16 78 / 0.18), transparent);
-      filter: blur(2px);
-      animation: drift 12s ease-in-out infinite;
+      right: -80px;
+      bottom: -90px;
+      width: 260px;
+      height: 260px;
+      border: 1.5px solid rgba(234, 95, 36, 0.34);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 26px rgba(234, 95, 36, 0.05);
     }
-    .mast::after {
-      content: 'REC';
-      position: absolute;
-      right: 30px;
-      top: 30px;
-      color: var(--red);
-      font-size: 0.76rem;
-      letter-spacing: 0.18em;
-      text-shadow: 0 0 18px oklch(68% 0.18 28 / 0.65);
-    }
-    .eyebrow {
-      width: fit-content;
-      padding: 8px 12px;
-      border: 1px solid var(--line);
+    .kicker {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 11px;
+      border: 1.5px solid var(--line);
       border-radius: 999px;
       color: var(--muted);
-      background: oklch(100% 0.02 80 / 0.06);
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.38);
     }
-    h1, h2, h3 {
-      font-family: 'Bricolage Grotesque', ui-sans-serif, sans-serif;
-      letter-spacing: -0.04em;
+    .brand h1 {
+      margin: 38px 0 14px;
+      max-width: 560px;
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(3.4rem, 8vw, 7.8rem);
+      font-weight: 400;
+      line-height: 0.86;
+      letter-spacing: -0.055em;
     }
-    .mast h1 {
-      margin: 34px 0 18px;
-      max-width: 11ch;
-      font-size: clamp(4.5rem, 11vw, 10rem);
-      line-height: 0.78;
-    }
-    .mast h1 span {
-      color: var(--accent);
-      text-shadow: 0 0 34px oklch(72% 0.18 48 / 0.22);
-    }
-    .mast p {
-      max-width: 56ch;
+    .brand h1 em { color: var(--accent); font-style: italic; }
+    .brand p {
+      max-width: 560px;
       color: var(--muted);
-      line-height: 1.75;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
+      line-height: 1.7;
     }
-    .caps {
+    .cap-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin: 28px 0;
+      margin-top: 24px;
     }
     .cap {
-      position: relative;
-      padding: 8px 11px 8px 26px;
-      border: 1px solid var(--line);
+      padding: 7px 10px;
+      border: 1.5px solid var(--line);
       border-radius: 999px;
+      background: rgba(255,255,255,0.35);
       color: var(--muted);
-      background: oklch(100% 0.02 80 / 0.045);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .cap.on { color: var(--green); border-color: rgba(37, 116, 71, 0.34); }
+
+    .console { padding: 22px; }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
       font-size: 0.68rem;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s, color 0.2s;
-    }
-    .cap::before {
-      content: '';
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--quiet);
-      transform: translateY(-50%);
-    }
-    .cap.on {
-      color: var(--green);
-      border-color: oklch(75% 0.16 146 / 0.38);
-    }
-    .cap.on::before {
-      background: var(--green);
-      box-shadow: 0 0 14px var(--green);
-    }
-    .cap:hover { transform: translateY(-2px); }
-    .operator-note {
-      margin-top: auto;
-      padding: 16px;
-      border: 1px solid oklch(74% 0.12 218 / 0.25);
-      border-radius: var(--radius-md);
-      background: oklch(34% 0.055 230 / 0.22);
-      color: var(--muted);
-      line-height: 1.65;
-      font-size: 0.78rem;
-    }
-
-    .workspace {
-      display: grid;
-      gap: 18px;
-      animation: enter 0.62s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-    .deck {
-      border-radius: var(--radius-xl);
-      overflow: hidden;
-    }
-    .drop {
-      position: relative;
-      padding: clamp(22px, 4vw, 34px);
-      min-height: 250px;
-    }
-    .drop::before {
-      content: '';
-      position: absolute;
-      inset: 16px;
-      border: 1px dashed oklch(78% 0.08 80 / 0.35);
-      border-radius: 24px;
-      pointer-events: none;
-      transition: border-color 0.22s, opacity 0.22s, transform 0.22s;
-    }
-    .deck:focus-within .drop::before,
-    .deck.hot .drop::before {
-      border-color: var(--line-hot);
-      opacity: 0.95;
-      transform: scale(0.992);
-    }
-    label {
-      display: block;
-      margin-bottom: 10px;
-      color: var(--quiet);
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
     }
     textarea {
-      position: relative;
       width: 100%;
-      min-height: 150px;
+      min-height: 138px;
       resize: vertical;
-      border: 0;
-      border-radius: 20px;
-      padding: 20px;
-      color: var(--ink);
-      background: oklch(13% 0.03 58 / 0.72);
-      outline: 1px solid var(--line);
-      line-height: 1.65;
-      box-shadow: inset 0 1px 0 oklch(100% 0.02 80 / 0.05);
-      transition: outline-color 0.2s, box-shadow 0.2s, transform 0.2s;
-    }
-    textarea::placeholder { color: oklch(60% 0.04 75 / 0.78); }
-    textarea:focus {
-      outline-color: var(--line-hot);
-      box-shadow: 0 0 0 5px oklch(72% 0.18 48 / 0.12), inset 0 1px 0 oklch(100% 0.02 80 / 0.06);
-      transform: translateY(-1px);
-    }
-    select, input[type="text"], input[type="number"] {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px 13px;
-      background: oklch(16% 0.03 58 / 0.82);
+      border: 1.5px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: #fffdf8;
       color: var(--ink);
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      line-height: 1.55;
     }
-    select:focus, input:focus {
-      border-color: var(--line-hot);
-      box-shadow: 0 0 0 4px oklch(72% 0.18 48 / 0.12);
+    textarea:focus, input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(234, 95, 36, 0.1);
     }
     .actions {
       display: flex;
       gap: 10px;
       margin-top: 14px;
-      align-items: center;
-      flex-wrap: wrap;
     }
     .btn {
-      position: relative;
       border: 0;
-      border-radius: 16px;
-      padding: 13px 17px;
-      min-height: 46px;
-      color: var(--ink);
-      background: oklch(31% 0.05 62);
-      letter-spacing: 0.05em;
+      border-radius: 14px;
+      padding: 12px 16px;
+      background: var(--ink);
+      color: var(--paper);
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      overflow: hidden;
-      transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background 0.18s, opacity 0.18s;
+      transition: transform 0.16s, background 0.16s, opacity 0.16s;
     }
-    .btn::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, transparent, oklch(100% 0.02 80 / 0.18), transparent);
-      transform: translateX(-120%);
-      transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .btn:hover::after { transform: translateX(120%); }
-    .btn:hover { transform: translateY(-2px); }
-    .btn:active { transform: translateY(1px) scale(0.99); }
+    .btn:hover { transform: translateY(-1px); }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-    .btn.primary {
-      flex: 1;
-      background: linear-gradient(135deg, var(--accent), oklch(78% 0.16 78));
-      color: oklch(16% 0.04 58);
-      font-weight: 700;
-      box-shadow: 0 18px 42px oklch(72% 0.18 48 / 0.22);
-    }
+    .btn.primary { flex: 1; background: var(--accent); }
+    .btn.primary:hover { background: var(--accent-dark); }
     .btn.ghost {
-      border: 1px solid var(--line);
+      border: 1.5px solid var(--line);
       background: transparent;
-      color: var(--muted);
+      color: var(--ink);
     }
 
-    .panels {
+    .grid {
       display: grid;
-      grid-template-columns: minmax(330px, 0.88fr) minmax(0, 1.12fr);
-      gap: 18px;
+      grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+      gap: 22px;
       align-items: start;
     }
     .panel {
-      border-radius: var(--radius-lg);
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 240, 0.84);
+      box-shadow: var(--shadow);
       overflow: hidden;
     }
     .panel-head {
       display: flex;
       justify-content: space-between;
-      gap: 14px;
+      gap: 12px;
       padding: 18px 20px;
-      border-bottom: 1px solid var(--line);
-      background: oklch(100% 0.02 80 / 0.045);
+      border-bottom: 1.5px solid var(--line);
+      background: rgba(255, 244, 220, 0.68);
     }
     .panel-title {
       margin: 0;
-      font-size: 1.55rem;
-      line-height: 0.95;
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      line-height: 1;
     }
     .panel-note {
-      max-width: 32ch;
-      color: var(--quiet);
+      color: var(--muted);
       font-size: 0.72rem;
       line-height: 1.5;
-      text-align: right;
     }
     .panel-body { padding: 18px 20px 20px; }
+
     .option-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
     }
-    .field { min-width: 0; }
+    .field {
+      min-width: 0;
+    }
+    select, input[type="text"], input[type="number"] {
+      width: 100%;
+      border: 1.5px solid var(--line);
+      border-radius: 13px;
+      padding: 11px 12px;
+      background: #fffdf8;
+      color: var(--ink);
+      outline: none;
+    }
     .toggle {
       display: flex;
       align-items: center;
       gap: 10px;
-      min-height: 43px;
-      padding: 10px 0;
-      color: var(--muted);
+      min-height: 42px;
+      color: var(--ink);
       font-size: 0.78rem;
     }
-    .toggle input {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--accent);
-      transform-origin: center;
-    }
-    .toggle input:checked { animation: tickpop 0.24s cubic-bezier(0.16, 1, 0.3, 1); }
+    .toggle input { width: 17px; height: 17px; accent-color: var(--accent); }
     .hidden { display: none !important; }
-
-    .statusbar {
-      display: grid;
-      gap: 12px;
-      margin-bottom: 16px;
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: oklch(12% 0.026 58 / 0.5);
-    }
-    .progress {
-      position: relative;
-      height: 12px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: oklch(12% 0.026 58 / 0.92);
-      outline: 1px solid var(--line);
-    }
-    .progress span {
-      display: block;
-      height: 100%;
-      width: 0%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, var(--accent), var(--amber), var(--green));
-      box-shadow: 0 0 26px oklch(72% 0.18 48 / 0.4);
-      transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .progress::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent, oklch(100% 0.02 80 / 0.22), transparent);
-      transform: translateX(-100%);
-      animation: scan 1.7s linear infinite;
-    }
 
     .cards {
       display: grid;
-      gap: 12px;
+      gap: 11px;
     }
     .card {
-      position: relative;
       display: grid;
-      grid-template-columns: 128px minmax(0, 1fr);
-      gap: 15px;
+      grid-template-columns: 122px minmax(0, 1fr);
+      gap: 14px;
       padding: 13px;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background:
-        linear-gradient(135deg, oklch(100% 0.02 80 / 0.07), transparent 46%),
-        oklch(15% 0.03 58 / 0.74);
-      animation: cardIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
-      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s, background 0.22s;
+      border: 1.5px solid var(--line);
+      border-radius: 18px;
+      background: #fffdf8;
+      animation: rise 0.38s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .card:hover {
-      transform: translateY(-3px);
-      border-color: oklch(76% 0.12 78 / 0.42);
-      background:
-        linear-gradient(135deg, oklch(100% 0.02 80 / 0.1), transparent 46%),
-        oklch(18% 0.035 58 / 0.8);
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .thumb {
-      width: 128px;
-      height: 82px;
-      border-radius: 16px;
-      background:
-        radial-gradient(circle at 28% 28%, oklch(72% 0.18 48 / 0.18), transparent 48%),
-        oklch(12% 0.03 58);
+      width: 122px;
+      height: 78px;
+      border-radius: 13px;
+      background: var(--panel-strong);
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--quiet);
-      outline: 1px solid var(--line);
+      color: var(--muted);
     }
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
     .card h3 {
-      margin: 0 0 6px;
+      margin: 0 0 5px;
+      font-family: 'Instrument Serif', serif;
       font-size: 1.15rem;
-      line-height: 1.05;
+      font-weight: 400;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
     .meta {
-      color: var(--quiet);
+      color: var(--muted);
       font-size: 0.68rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      line-height: 1.55;
+      letter-spacing: 0.04em;
+      line-height: 1.5;
     }
     .card-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-top: 11px;
+      margin-top: 10px;
       align-items: center;
     }
     .mini {
-      border: 1px solid var(--line);
+      border: 1.5px solid var(--line);
       border-radius: 999px;
       padding: 7px 10px;
-      background: oklch(100% 0.02 80 / 0.035);
-      color: var(--muted);
+      background: transparent;
+      color: var(--ink);
       font-size: 0.68rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
       text-decoration: none;
-      transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), color 0.18s, border-color 0.18s, background 0.18s;
     }
-    .mini:hover {
-      transform: translateY(-2px);
-      border-color: var(--line-hot);
-      color: var(--ink);
-    }
-    .mini.hot {
-      border-color: oklch(83% 0.16 78 / 0.55);
-      background: oklch(83% 0.16 78 / 0.12);
-      color: var(--amber);
-    }
-    .mini.good {
-      color: var(--green);
-      border-color: oklch(75% 0.16 146 / 0.38);
-    }
-    .mini.bad {
-      color: var(--red);
-      border-color: oklch(68% 0.18 28 / 0.38);
-    }
+    .mini.hot { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+    .mini.good { color: var(--green); border-color: rgba(37, 116, 71, 0.35); }
+    .mini.bad { color: var(--red); border-color: rgba(184, 63, 55, 0.35); }
     .quality-select {
       width: auto;
-      max-width: 125px;
-      padding: 7px 9px;
+      max-width: 118px;
+      padding: 6px 8px;
       border-radius: 999px;
       font-size: 0.68rem;
     }
-    .empty {
-      position: relative;
-      padding: 24px;
-      border: 1px dashed oklch(78% 0.08 80 / 0.33);
-      border-radius: 20px;
-      color: var(--muted);
-      line-height: 1.75;
-      background:
-        radial-gradient(circle at 18% 24%, oklch(72% 0.18 48 / 0.11), transparent 16rem),
-        oklch(12% 0.026 58 / 0.5);
+
+    .statusbar {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 16px;
     }
-    .empty strong {
-      display: block;
-      margin-bottom: 6px;
-      color: var(--ink);
-      font-family: 'Bricolage Grotesque', ui-sans-serif, sans-serif;
-      font-size: 1.2rem;
-      letter-spacing: -0.03em;
-    }
-    .error { color: var(--red); }
-    .toast {
-      position: fixed;
-      right: 22px;
-      bottom: 22px;
-      max-width: min(360px, calc(100vw - 32px));
-      padding: 14px 16px;
-      border: 1px solid var(--line-hot);
-      border-radius: 18px;
-      background: oklch(18% 0.04 58 / 0.92);
-      color: var(--ink);
-      box-shadow: var(--shadow);
-      transform: translateY(20px);
-      opacity: 0;
-      pointer-events: none;
-      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s;
-      z-index: 10;
-    }
-    .toast.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-    .burst {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 9;
+    .progress {
+      height: 10px;
       overflow: hidden;
-    }
-    .spark {
-      position: absolute;
-      left: 50%;
-      top: 42%;
-      width: 7px;
-      height: 18px;
       border-radius: 999px;
-      background: var(--spark-color, var(--amber));
-      transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0);
-      opacity: 0;
-      animation: spark 0.82s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      border: 1.5px solid var(--line);
+      background: rgba(255,255,255,0.4);
+    }
+    .progress span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #f4b24f);
+      transition: width 0.28s ease;
+    }
+    .empty {
+      padding: 24px;
+      border: 1.5px dashed var(--line);
+      border-radius: 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      background: rgba(255,255,255,0.28);
+    }
+    .error {
+      color: var(--red);
     }
     .footer {
       margin-top: 24px;
-      color: var(--quiet);
+      color: var(--muted);
       font-size: 0.68rem;
       text-align: center;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       line-height: 1.8;
-      animation: enter 0.62s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    @keyframes enter {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(10px) scale(0.985); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @keyframes scan {
-      to { transform: translateX(100%); }
-    }
-    @keyframes pulse {
-      0%, 100% { transform: scale(0.86); opacity: 0.62; }
-      50% { transform: scale(1.12); opacity: 1; }
-    }
-    @keyframes drift {
-      0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      50% { transform: translate(-18px, -14px) rotate(12deg); }
-    }
-    @keyframes tickpop {
-      0% { transform: scale(0.85); }
-      70% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-    @keyframes spark {
-      0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0) scale(0.6); }
-      18% { opacity: 1; }
-      100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-150px) scale(1); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.001ms !important;
-        animation-iteration-count: 1 !important;
-        scroll-behavior: auto !important;
-        transition-duration: 0.001ms !important;
-      }
-    }
-    @media (max-width: 980px) {
-      .studio, .panels { grid-template-columns: 1fr; }
-      .mast { position: relative; top: 0; min-height: auto; }
-      .mast h1 { max-width: 9ch; }
-      .panel-note, .hintline { text-align: left; }
+    @media (max-width: 880px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+      .brand { min-height: auto; }
     }
     @media (max-width: 560px) {
-      .shell { width: min(100% - 18px, 1320px); padding-top: 12px; }
-      .topbar { align-items: flex-start; flex-direction: column; }
-      .mast, .deck, .panel { border-radius: 22px; }
-      .mast { padding: 24px; }
-      .mast h1 { font-size: clamp(4rem, 24vw, 6.6rem); }
-      .drop { padding: 20px; }
-      .actions { flex-direction: column; align-items: stretch; }
+      .shell { width: min(100% - 20px, 1180px); padding-top: 18px; }
+      .brand, .console, .panel { border-radius: 18px; }
+      .brand { padding: 24px; }
       .option-grid { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
       .card { grid-template-columns: 1fr; }
-      .thumb { width: 100%; height: 172px; }
+      .thumb { width: 100%; height: 170px; }
       .card h3 { white-space: normal; }
     }
   </style>
 </head>
 <body>
   <main class="shell">
-    <div class="topbar">
-      <div class="sig"><span class="sig-mark"></span><span>Local export studio</span></div>
-      <div class="hintline" id="hintline">Drop links. Keep the artifacts. Leave no cloud trace.</div>
-    </div>
-
-    <section class="studio">
-      <aside class="mast">
-        <span class="eyebrow">self-hosted media lab</span>
-        <h1>Re<span>Clip</span></h1>
-        <p>Quick pulls, channel runs, transcripts, clips, metadata, and ZIP bundles in one cockpit built for late-night dev friends.</p>
-        <div class="caps" id="caps">
+    <section class="hero">
+      <div class="brand">
+        <span class="kicker">One console · every export</span>
+        <h1>Re<em>Clip</em> Control</h1>
+        <p>Quick MP4/MP3 downloads still work. YouTube channels and videos now unlock transcripts, clipping, metadata, fallback transcription, cleanup, individual artifacts, and full ZIP exports.</p>
+        <div class="cap-row" id="caps">
           <span class="cap">yt-dlp</span>
           <span class="cap">ffmpeg</span>
           <span class="cap" id="cap-aai">AssemblyAI</span>
           <span class="cap" id="cap-gemini">Gemini</span>
         </div>
-        <div class="operator-note" id="operatorNote">Tip: paste a handle like <strong>@channel</strong> to unlock channel export controls.</div>
-      </aside>
+      </div>
 
-      <section class="workspace">
-        <div class="deck" id="deck">
-          <div class="drop">
-            <label for="sourceInput">Signal input</label>
-            <textarea id="sourceInput" placeholder="https://youtu.be/...&#10;@channel&#10;https://www.tiktok.com/..."></textarea>
-            <div class="actions">
-              <button class="btn primary" id="analyzeBtn">Analyze Input</button>
-              <button class="btn ghost" id="clearBtn">Clear Desk</button>
+      <div class="console">
+        <label for="sourceInput">Paste media URLs, YouTube handles, channel IDs, or video IDs</label>
+        <textarea id="sourceInput" placeholder="https://youtu.be/...&#10;@channel&#10;https://www.tiktok.com/..."></textarea>
+        <div class="actions">
+          <button class="btn primary" id="analyzeBtn">Analyze Input</button>
+          <button class="btn ghost" id="clearBtn">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Export Shape</h2>
+          <div class="panel-note" id="modeNote">Analyze input to unlock smart options.</div>
+        </div>
+        <div class="panel-body">
+          <div class="option-grid">
+            <div class="field">
+              <label for="outputFormat">Output</label>
+              <select id="outputFormat">
+                <option value="video">Video</option>
+                <option value="audio">Audio</option>
+                <option value="text">Transcript</option>
+              </select>
             </div>
+            <div class="field">
+              <label for="quality">Quality</label>
+              <select id="quality">
+                <option value="optimized">Optimized</option>
+                <option value="highest">Highest</option>
+                <option value="compressed">Compressed</option>
+              </select>
+            </div>
+            <div class="field" id="textExtField">
+              <label for="textExtension">Transcript Format</label>
+              <select id="textExtension">
+                <option value="txt">TXT</option>
+                <option value="md">Markdown</option>
+                <option value="json">JSON</option>
+              </select>
+            </div>
+            <div class="field" id="audioExtField">
+              <label for="audioExtension">Audio Format</label>
+              <select id="audioExtension">
+                <option value="mp3">MP3</option>
+                <option value="wav">WAV</option>
+              </select>
+            </div>
+            <div class="field" id="videoExtField">
+              <label for="videoExtension">Video Format</label>
+              <select id="videoExtension">
+                <option value="mp4">MP4</option>
+                <option value="mkv">MKV</option>
+              </select>
+            </div>
+            <div class="field channel-only">
+              <label for="maxVideos">Max Videos</label>
+              <input id="maxVideos" type="number" min="1" value="5">
+            </div>
+            <div class="field channel-only">
+              <label for="order">Sort</label>
+              <select id="order">
+                <option value="date">Newest first</option>
+                <option value="popularity">Popularity</option>
+              </select>
+            </div>
+            <div class="field video-only">
+              <label for="clipStart">Clip From</label>
+              <input id="clipStart" type="text" placeholder="00:00">
+            </div>
+            <div class="field video-only">
+              <label for="clipEnd">Clip To</label>
+              <input id="clipEnd" type="text" placeholder="blank = end">
+            </div>
+            <label class="toggle transcript-option">
+              <input id="transcription" type="checkbox">
+              Include transcript with audio/video
+            </label>
+            <div class="field transcript-controls">
+              <label for="transcriptionFormat">Attached Transcript</label>
+              <select id="transcriptionFormat">
+                <option value="txt">TXT</option>
+                <option value="md">Markdown</option>
+                <option value="json">JSON</option>
+              </select>
+            </div>
+            <div class="field transcript-controls">
+              <label for="transcriptFallback">Transcript Fallback</label>
+              <select id="transcriptFallback">
+                <option value="auto_captions">Captions before AssemblyAI</option>
+                <option value="assemblyai_transcripts">AssemblyAI first</option>
+              </select>
+            </div>
+            <label class="toggle transcript-controls">
+              <input id="geminiCleanup" type="checkbox">
+              Clean auto captions with Gemini
+            </label>
+            <label class="toggle">
+              <input id="videoMetadata" type="checkbox" checked>
+              Include video metadata
+            </label>
+            <label class="toggle channel-only">
+              <input id="channelMetadata" type="checkbox">
+              Include channel metadata
+            </label>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="startBtn" disabled>Start Export</button>
           </div>
         </div>
+      </div>
 
-        <section class="panels">
-          <div class="panel">
-            <div class="panel-head">
-              <h2 class="panel-title">Export Shape</h2>
-              <div class="panel-note" id="modeNote">Analyze input to unlock smart options.</div>
-            </div>
-            <div class="panel-body">
-              <div class="option-grid">
-                <div class="field">
-                  <label for="outputFormat">Output</label>
-                  <select id="outputFormat">
-                    <option value="video">Video</option>
-                    <option value="audio">Audio</option>
-                    <option value="text">Transcript</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="quality">Quality</label>
-                  <select id="quality">
-                    <option value="optimized">Optimized</option>
-                    <option value="highest">Highest</option>
-                    <option value="compressed">Compressed</option>
-                  </select>
-                </div>
-                <div class="field" id="textExtField">
-                  <label for="textExtension">Transcript Format</label>
-                  <select id="textExtension">
-                    <option value="txt">TXT</option>
-                    <option value="md">Markdown</option>
-                    <option value="json">JSON</option>
-                  </select>
-                </div>
-                <div class="field" id="audioExtField">
-                  <label for="audioExtension">Audio Format</label>
-                  <select id="audioExtension">
-                    <option value="mp3">MP3</option>
-                    <option value="wav">WAV</option>
-                  </select>
-                </div>
-                <div class="field" id="videoExtField">
-                  <label for="videoExtension">Video Format</label>
-                  <select id="videoExtension">
-                    <option value="mp4">MP4</option>
-                    <option value="mkv">MKV</option>
-                  </select>
-                </div>
-                <div class="field channel-only">
-                  <label for="maxVideos">Max Videos</label>
-                  <input id="maxVideos" type="number" min="1" value="5">
-                </div>
-                <div class="field channel-only">
-                  <label for="order">Sort</label>
-                  <select id="order">
-                    <option value="date">Newest first</option>
-                    <option value="popularity">Popularity</option>
-                  </select>
-                </div>
-                <div class="field video-only">
-                  <label for="clipStart">Clip From</label>
-                  <input id="clipStart" type="text" placeholder="00:00">
-                </div>
-                <div class="field video-only">
-                  <label for="clipEnd">Clip To</label>
-                  <input id="clipEnd" type="text" placeholder="blank = end">
-                </div>
-                <label class="toggle transcript-option">
-                  <input id="transcription" type="checkbox">
-                  Include transcript with audio/video
-                </label>
-                <div class="field transcript-controls">
-                  <label for="transcriptionFormat">Attached Transcript</label>
-                  <select id="transcriptionFormat">
-                    <option value="txt">TXT</option>
-                    <option value="md">Markdown</option>
-                    <option value="json">JSON</option>
-                  </select>
-                </div>
-                <div class="field transcript-controls">
-                  <label for="transcriptFallback">Transcript Fallback</label>
-                  <select id="transcriptFallback">
-                    <option value="auto_captions">Captions before AssemblyAI</option>
-                    <option value="assemblyai_transcripts">AssemblyAI first</option>
-                  </select>
-                </div>
-                <label class="toggle transcript-controls">
-                  <input id="geminiCleanup" type="checkbox">
-                  Clean auto captions with Gemini
-                </label>
-                <label class="toggle">
-                  <input id="videoMetadata" type="checkbox" checked>
-                  Include video metadata
-                </label>
-                <label class="toggle channel-only">
-                  <input id="channelMetadata" type="checkbox">
-                  Include channel metadata
-                </label>
-              </div>
-              <div class="actions">
-                <button class="btn primary" id="startBtn" disabled>Start Export</button>
-              </div>
-            </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Run Desk</h2>
+          <div class="panel-note" id="summary">No input analyzed yet.</div>
+        </div>
+        <div class="panel-body">
+          <div id="jobStatus" class="statusbar hidden">
+            <div class="meta" id="jobMessage">Queued</div>
+            <div class="progress"><span id="jobProgress"></span></div>
+            <div class="card-actions" id="jobArtifacts"></div>
           </div>
-
-          <div class="panel">
-            <div class="panel-head">
-              <h2 class="panel-title">Run Desk</h2>
-              <div class="panel-note" id="summary">No input analyzed yet.</div>
-            </div>
-            <div class="panel-body">
-              <div id="jobStatus" class="statusbar hidden">
-                <div class="meta" id="jobMessage">Queued</div>
-                <div class="progress"><span id="jobProgress"></span></div>
-                <div class="card-actions" id="jobArtifacts"></div>
-              </div>
-              <div id="cards" class="cards">
-                <div class="empty"><strong>Desk is clean.</strong>Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.</div>
-              </div>
-            </div>
+          <div id="cards" class="cards">
+            <div class="empty">Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.</div>
           </div>
-        </section>
-      </section>
+        </div>
+      </div>
     </section>
 
     <div class="footer">YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Vimeo · Twitch · SoundCloud · 1000+ more</div>
   </main>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <div class="burst" id="burst" aria-hidden="true"></div>
 
   <script>
     const state = {
@@ -851,22 +529,9 @@
       poll: null,
       capabilities: { assemblyai: false, gemini: false },
       selectedFormats: {},
-      lastCelebratedJob: null,
     };
 
     const $ = id => document.getElementById(id);
-    const hints = [
-      'Drop links. Keep the artifacts. Leave no cloud trace.',
-      'Channel handles unlock batch mode.',
-      'ZIPs appear when the export desk lands the run.',
-      'Captions first, AssemblyAI when the trail goes cold.',
-    ];
-    const loadingLines = [
-      'Reading the tape header...',
-      'Asking yt-dlp what this thing really is...',
-      'Sorting formats into tiny labeled drawers...',
-      'Checking thumbnails before the machines spin up...',
-    ];
 
     function esc(value) {
       const div = document.createElement('div');
@@ -884,41 +549,13 @@
 
     function friendlyError(err) {
       const text = err || 'Export failed';
-      if (text.includes('Unsupported URL')) return 'This URL is not supported by the current rig.';
-      if (text.includes('Video unavailable')) return 'That video is locked, private, or already gone.';
-      if (text.includes('Private video')) return 'Private video. ReClip cannot pick that lock.';
-      if (text.includes('HTTP Error 403')) return 'The platform denied access.';
-      if (text.includes('timed out')) return 'The wire went quiet. Try again.';
-      if (text.includes('ASSEMBLYAI_API_KEY')) return 'AssemblyAI key missing on the server.';
+      if (text.includes('Unsupported URL')) return 'This URL is not supported';
+      if (text.includes('Video unavailable')) return 'Video unavailable or private';
+      if (text.includes('Private video')) return 'Private video';
+      if (text.includes('HTTP Error 403')) return 'Access denied by platform';
+      if (text.includes('timed out')) return 'Request timed out';
+      if (text.includes('ASSEMBLYAI_API_KEY')) return 'AssemblyAI key missing on server';
       return text.length > 110 ? text.slice(0, 110) + '...' : text;
-    }
-
-    function toast(message) {
-      const el = $('toast');
-      el.textContent = message;
-      el.classList.add('show');
-      clearTimeout(toast.timer);
-      toast.timer = setTimeout(() => el.classList.remove('show'), 3200);
-    }
-
-    function burst() {
-      const root = $('burst');
-      root.innerHTML = '';
-      const colors = ['var(--accent)', 'var(--amber)', 'var(--green)', 'var(--blue)'];
-      for (let i = 0; i < 22; i++) {
-        const spark = document.createElement('span');
-        spark.className = 'spark';
-        spark.style.setProperty('--angle', `${(360 / 22) * i}deg`);
-        spark.style.setProperty('--spark-color', colors[i % colors.length]);
-        spark.style.animationDelay = `${(i % 5) * 18}ms`;
-        root.appendChild(spark);
-      }
-      setTimeout(() => { root.innerHTML = ''; }, 1100);
-    }
-
-    function rotateHint() {
-      const index = Math.floor(Date.now() / 4500) % hints.length;
-      $('hintline').textContent = hints[index];
     }
 
     async function loadCapabilities() {
@@ -933,16 +570,11 @@
 
     async function analyze() {
       const input = $('sourceInput').value.trim();
-      if (!input) {
-        toast('Feed the deck a link, handle, or video ID first.');
-        return;
-      }
-      $('deck').classList.add('hot');
+      if (!input) return;
       $('analyzeBtn').disabled = true;
       $('analyzeBtn').textContent = 'Analyzing...';
-      $('cards').innerHTML = `<div class="empty"><strong>${loadingLines[Math.floor(Math.random() * loadingLines.length)]}</strong>Resolving media and reading available formats.</div>`;
+      $('cards').innerHTML = '<div class="empty">Resolving media and reading available formats...</div>';
       $('jobStatus').classList.add('hidden');
-      $('operatorNote').innerHTML = 'Analyzer is awake. Keep this tab open while it resolves formats.';
       state.job = null;
       clearInterval(state.poll);
 
@@ -960,14 +592,11 @@
           if (item.formats && item.formats.length) state.selectedFormats[item.id] = item.formats[0].id;
         }
         renderResolved();
-        toast(data.kind === 'channel' ? 'Channel controls unlocked.' : 'Media locked in. Choose the shape.');
       } catch (err) {
         state.resolved = null;
-        $('cards').innerHTML = `<div class="empty error"><strong>Signal lost.</strong>${esc(friendlyError(err.message))}</div>`;
+        $('cards').innerHTML = `<div class="empty error">${esc(friendlyError(err.message))}</div>`;
         $('summary').textContent = 'Analyze failed.';
-        $('operatorNote').innerHTML = 'The analyzer hit static. Check the URL or try a smaller batch.';
       } finally {
-        $('deck').classList.remove('hot');
         $('analyzeBtn').disabled = false;
         $('analyzeBtn').textContent = 'Analyze Input';
         syncOptions();
@@ -987,11 +616,6 @@
         : data.kind === 'video'
           ? 'Single-video export controls are active.'
           : 'Quick download controls are active.';
-      $('operatorNote').innerHTML = data.kind === 'channel'
-        ? 'Channel mode: set a sane max before waking the whole archive.'
-        : data.kind === 'video'
-          ? 'Single video mode: clipping controls are now available.'
-          : 'Quick mode: generic links stay fast and artifact-light.';
       $('startBtn').disabled = false;
       $('startBtn').textContent = data.kind === 'channel' ? 'Start Channel Export' : 'Start Export';
       $('cards').innerHTML = (data.items || []).map(renderCard).join('');
@@ -1042,6 +666,7 @@
       $('videoExtField').classList.toggle('hidden', output !== 'video');
       $('quality').disabled = output === 'text';
       $('geminiCleanup').disabled = !state.capabilities.gemini;
+
     }
 
     function buildConfig(overrideInput) {
@@ -1076,7 +701,6 @@
       $('jobMessage').textContent = 'Starting export';
       $('jobProgress').style.width = '2%';
       $('jobArtifacts').innerHTML = '';
-      $('operatorNote').innerHTML = 'Run in progress. The artifacts will appear as each reel lands.';
 
       try {
         const res = await fetch('/api/jobs', {
@@ -1086,7 +710,6 @@
         });
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error || 'Could not start job');
-        toast('Deck rolling. Keep the tab open.');
         pollJob(data.job_id);
       } catch (err) {
         $('jobMessage').innerHTML = `<span class="error">${esc(friendlyError(err.message))}</span>`;
@@ -1107,14 +730,6 @@
             clearInterval(state.poll);
             $('startBtn').disabled = false;
             $('startBtn').textContent = state.resolved?.kind === 'channel' ? 'Start Channel Export' : 'Start Export';
-            if (job.status !== 'error' && state.lastCelebratedJob !== job.id) {
-              state.lastCelebratedJob = job.id;
-              burst();
-              toast(job.status === 'partial' ? 'Run landed with a few bruises.' : 'Export landed. ZIP is warm.');
-              $('operatorNote').innerHTML = job.status === 'partial'
-                ? 'Some items failed, but the good artifacts are ready.'
-                : 'Clean landing. Download the ZIP or pick individual artifacts.';
-            }
           }
         } catch (err) {
           clearInterval(state.poll);
@@ -1162,22 +777,15 @@
       state.resolved = null;
       state.job = null;
       state.selectedFormats = {};
-      state.lastCelebratedJob = null;
       clearInterval(state.poll);
-      $('cards').innerHTML = '<div class="empty"><strong>Desk is clean.</strong>Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.</div>';
+      $('cards').innerHTML = '<div class="empty">Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.</div>';
       $('summary').textContent = 'No input analyzed yet.';
       $('modeNote').textContent = 'Analyze input to unlock smart options.';
-      $('operatorNote').innerHTML = 'Tip: paste a handle like <strong>@channel</strong> to unlock channel export controls.';
       $('jobStatus').classList.add('hidden');
       $('startBtn').disabled = true;
-      toast('Desk cleared.');
       syncOptions();
     }
 
-    document.addEventListener('pointermove', event => {
-      document.body.style.setProperty('--mx', `${event.clientX}px`);
-      document.body.style.setProperty('--my', `${event.clientY}px`);
-    });
     $('analyzeBtn').addEventListener('click', analyze);
     $('clearBtn').addEventListener('click', clearAll);
     $('startBtn').addEventListener('click', () => startJob());
@@ -1195,8 +803,6 @@
     });
 
     loadCapabilities();
-    rotateHint();
-    setInterval(rotateHint, 4500);
     syncOptions();
   </script>
 </body>
