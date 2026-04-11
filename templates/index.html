@@ -1477,6 +1477,24 @@
     loadCapabilities();
     syncOptions();
   </script>
+  {% if dev_reload %}
+  <script>
+    (() => {
+      let currentVersion = null;
+      async function checkForReload() {
+        try {
+          const res = await fetch('/api/dev/reload-version', { cache: 'no-store' });
+          if (!res.ok) return;
+          const data = await res.json();
+          if (currentVersion && data.version !== currentVersion) window.location.reload();
+          currentVersion = data.version;
+        } catch {}
+      }
+      checkForReload();
+      setInterval(checkForReload, 700);
+    })();
+  </script>
+  {% endif %}
 </body>
 
 </html>

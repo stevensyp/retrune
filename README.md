@@ -38,6 +38,12 @@ cd reclip
 
 Open **http://localhost:8899**.
 
+For UI development with automatic server restart and browser refresh:
+
+```bash
+./reclip.sh --dev
+```
+
 Or with Docker:
 
 ```bash

@@ -27,6 +27,7 @@
 
 ## Developer Workflow
 - Run locally with `./reclip.sh`; it creates/activates `venv/`, installs Flask and yt-dlp, then starts `python3 app.py`.
+- For UI work, use `./reclip.sh --dev` instead of the normal command. It stops any existing listener on `PORT`, starts Flask with reload enabled, opens `http://localhost:8899`, and enables browser auto-refresh when `app.py`, `export_engine.py`, `templates/`, or `static/` changes.
 - Manual setup: `python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python3 app.py`.
 - Docker path: `docker build -t reclip . && docker run -p 8899:8899 reclip`.
 - Lightweight checks: `venv/bin/python -m py_compile app.py export_engine.py`, `bash -n reclip.sh`, and extract/check the inline script in `templates/index.html` with `node --check` when Node is available.

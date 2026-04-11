@@ -1,4 +1,5 @@
 import os
+import hashlib
 
 from flask import Flask, jsonify, render_template, request, send_file
 
@@ -12,11 +13,38 @@ DOWNLOAD_DIR = os.path.join(ROOT_DIR, "downloads")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 job_store = JobStore(DOWNLOAD_DIR)
+DEV_RELOAD = os.environ.get("RECLIP_DEV_RELOAD") == "1"
+
+
+def _dev_reload_version():
+    watch_paths = [__file__, os.path.join(ROOT_DIR, "export_engine.py")]
+    for folder in ("templates", "static"):
+        root = os.path.join(ROOT_DIR, folder)
+        for dirpath, _, filenames in os.walk(root):
+            for filename in filenames:
+                if os.path.splitext(filename)[1] in {".html", ".css", ".js", ".svg"}:
+                    watch_paths.append(os.path.join(dirpath, filename))
+
+    parts = []
+    for path in sorted(watch_paths):
+        try:
+            stat = os.stat(path)
+        except OSError:
+            continue
+        parts.append(f"{os.path.relpath(path, ROOT_DIR)}:{stat.st_mtime_ns}:{stat.st_size}")
+    return hashlib.sha1("|".join(parts).encode("utf-8")).hexdigest()
 
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", dev_reload=DEV_RELOAD)
+
+
+@app.route("/api/dev/reload-version")
+def dev_reload_version():
+    if not DEV_RELOAD:
+        return jsonify({"error": "Not found"}), 404
+    return jsonify({"version": _dev_reload_version()})
 
 
 @app.route("/api/capabilities")
@@ -151,4 +179,4 @@ def download_file(job_id):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8899))
     host = os.environ.get("HOST", "127.0.0.1")
-    app.run(host=host, port=port)
+    app.run(host=host, port=port, debug=DEV_RELOAD, use_reloader=DEV_RELOAD)
