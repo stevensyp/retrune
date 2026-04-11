@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReClip — Media Export Console</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
+    rel="stylesheet">
   <style>
     :root {
       --ink: #272722;
@@ -24,7 +27,10 @@
       --radius: 22px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -35,6 +41,7 @@
         radial-gradient(circle at 82% 4%, rgba(34, 95, 122, 0.14), transparent 30rem),
         linear-gradient(135deg, #f8f2e6 0%, var(--paper) 45%, #ece1cf 100%);
     }
+
     body::after {
       content: '';
       position: fixed;
@@ -43,8 +50,18 @@
       opacity: 0.035;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
     }
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
     ::selection {
       background: rgba(234, 95, 36, 0.22);
       color: var(--ink);
@@ -56,19 +73,23 @@
       padding: 42px 0 72px;
       animation: page-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .layout-board {
       display: grid;
       grid-template-columns: minmax(420px, 1fr) minmax(340px, 0.78fr);
       gap: 22px;
       align-items: start;
     }
-    .brand, .console {
+
+    .brand,
+    .console {
       border: 1.5px solid var(--line);
       border-radius: var(--radius);
       background: rgba(255, 250, 240, 0.78);
       box-shadow: var(--shadow);
       backdrop-filter: blur(12px);
     }
+
     .brand {
       padding: 24px 44px 18px;
       min-height: 200px;
@@ -76,11 +97,12 @@
       position: relative;
       overflow: hidden;
       display: grid;
-      grid-template-columns: minmax(620px, 0.94fr) minmax(540px, 1fr);
-      gap: 52px;
-      align-items: end;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.74fr);
+      gap: clamp(24px, 4vw, 56px);
+      align-items: center;
       margin-bottom: 22px;
     }
+
     .brand::before {
       content: '';
       position: absolute;
@@ -94,7 +116,11 @@
       opacity: 0.76;
       transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .brand:hover::before { transform: translate(-10px, -8px) scale(1.04); }
+
+    .brand:hover::before {
+      transform: translate(-10px, -8px) scale(1.04);
+    }
+
     .brand::after {
       content: '';
       position: absolute;
@@ -107,26 +133,36 @@
       box-shadow: inset 0 0 0 42px rgba(234, 95, 36, 0.035);
       pointer-events: none;
     }
+
     .brand-left,
     .brand-right {
       position: relative;
       z-index: 1;
     }
+
     .brand-left {
       display: grid;
-      gap: 8px;
+      grid-template-columns: max-content max-content;
+      column-gap: clamp(10px, 1.25vw, 20px);
+      row-gap: 8px;
+      align-items: end;
+      min-width: 0;
     }
+
     .brand-right {
       display: grid;
       justify-items: end;
       gap: 14px;
       padding-bottom: 12px;
+      min-width: 0;
     }
+
     .kicker {
       display: inline-flex;
       gap: 8px;
       align-items: center;
-      justify-self: end;
+      grid-column: 2;
+      justify-self: start;
       width: 330px;
       max-width: 100%;
       padding: 3px 8px 4px;
@@ -138,6 +174,7 @@
       text-transform: uppercase;
       background: rgba(255, 250, 240, 0.58);
     }
+
     .kicker::before {
       content: '';
       width: 7px;
@@ -147,17 +184,34 @@
       box-shadow: 0 0 0 4px rgba(234, 95, 36, 0.11);
       animation: live-dot 2.6s ease-in-out infinite;
     }
+
     .brand h1 {
       margin: 0;
       max-width: none;
       font-family: 'Instrument Serif', serif;
-      font-size: clamp(4.75rem, 8.25vw, 8.6rem);
+      font-size: clamp(4.5rem, 8.25vw, 8.4rem);
+      font-weight: 400;
+      line-height: 0.76;
+      letter-spacing: -0.07em;
+      white-space: nowrap;
+      display: contents;
+    }
+
+    .brand-title-clip,
+    .brand-title-control {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(4.5rem, 8.25vw, 8.4rem);
       font-weight: 400;
       line-height: 0.76;
       letter-spacing: -0.07em;
       white-space: nowrap;
     }
-    .brand h1 em { color: var(--accent); font-style: italic; }
+
+    .brand h1 em {
+      color: var(--accent);
+      font-style: italic;
+    }
+
     .brand-copy {
       margin: 0;
       max-width: 650px;
@@ -167,6 +221,7 @@
       line-height: 1.75;
       text-align: right;
     }
+
     .cap-row {
       display: flex;
       flex-wrap: wrap;
@@ -174,29 +229,38 @@
       justify-content: flex-end;
       justify-self: end;
       align-self: start;
+      max-width: 100%;
     }
+
     .cap {
       padding: 9px 14px;
       border: 1.5px solid var(--line);
       border-radius: 999px;
-      background: rgba(255,255,255,0.35);
+      background: rgba(255, 255, 255, 0.35);
       color: var(--muted);
       font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
+      white-space: nowrap;
     }
-    .cap.on { color: var(--green); border-color: rgba(37, 116, 71, 0.34); }
+
+    .cap.on {
+      color: var(--green);
+      border-color: rgba(37, 116, 71, 0.34);
+    }
 
     .console {
       padding: 22px;
       min-height: 226px;
       transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
     }
+
     .console.listening {
       border-color: rgba(234, 95, 36, 0.42);
       box-shadow: 0 28px 90px rgba(234, 95, 36, 0.16);
       transform: translateY(-1px);
     }
+
     label {
       display: block;
       margin-bottom: 8px;
@@ -205,6 +269,7 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
     }
+
     textarea {
       width: 100%;
       min-height: 138px;
@@ -218,16 +283,24 @@
       line-height: 1.55;
       transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
     }
-    textarea:focus, input:focus, select:focus {
+
+    textarea:focus,
+    input:focus,
+    select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 4px rgba(234, 95, 36, 0.1);
     }
-    textarea:focus { transform: translateY(-1px); }
+
+    textarea:focus {
+      transform: translateY(-1px);
+    }
+
     .actions {
       display: flex;
       gap: 10px;
       margin-top: 14px;
     }
+
     .btn {
       border: 0;
       border-radius: 14px;
@@ -238,14 +311,31 @@
       text-transform: uppercase;
       transition: transform 0.16s, background 0.16s, opacity 0.16s, box-shadow 0.16s;
     }
-    .btn:hover { transform: translateY(-1px); }
-    .btn:active { transform: translateY(1px) scale(0.99); }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-    .btn.primary { flex: 1; background: var(--accent); }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn.primary {
+      flex: 1;
+      background: var(--accent);
+    }
+
     .btn.primary:hover {
       background: var(--accent-dark);
       box-shadow: 0 10px 24px rgba(234, 95, 36, 0.22);
     }
+
     .btn.ghost {
       border: 1.5px solid var(--line);
       background: transparent;
@@ -257,6 +347,7 @@
       gap: 22px;
       align-items: stretch;
     }
+
     .panel {
       border: 1.5px solid var(--line);
       border-radius: var(--radius);
@@ -264,20 +355,24 @@
       box-shadow: var(--shadow);
       overflow: hidden;
     }
+
     .run-panel {
       min-height: 690px;
       display: flex;
       flex-direction: column;
     }
+
     .run-panel .panel-body {
       flex: 1;
       display: flex;
       flex-direction: column;
     }
+
     .run-panel .cards {
       flex: 1;
       align-content: start;
     }
+
     .panel-head {
       display: flex;
       justify-content: space-between;
@@ -286,6 +381,7 @@
       border-bottom: 1.5px solid var(--line);
       background: rgba(255, 244, 220, 0.68);
     }
+
     .panel-title {
       margin: 0;
       font-family: 'Instrument Serif', serif;
@@ -293,22 +389,30 @@
       font-weight: 400;
       line-height: 1;
     }
+
     .panel-note {
       color: var(--muted);
       font-size: 0.72rem;
       line-height: 1.5;
     }
-    .panel-body { padding: 18px 20px 20px; }
+
+    .panel-body {
+      padding: 18px 20px 20px;
+    }
 
     .option-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
     }
+
     .field {
       min-width: 0;
     }
-    select, input[type="text"], input[type="number"] {
+
+    select,
+    input[type="text"],
+    input[type="number"] {
       width: 100%;
       border: 1.5px solid var(--line);
       border-radius: 13px;
@@ -318,6 +422,7 @@
       outline: none;
       transition: border-color 0.16s, box-shadow 0.16s;
     }
+
     .toggle {
       display: flex;
       align-items: center;
@@ -326,14 +431,26 @@
       color: var(--ink);
       font-size: 0.78rem;
     }
-    .toggle input { width: 17px; height: 17px; accent-color: var(--accent); }
-    .toggle input:checked { animation: tick-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
-    .hidden { display: none !important; }
+
+    .toggle input {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--accent);
+    }
+
+    .toggle input:checked {
+      animation: tick-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .hidden {
+      display: none !important;
+    }
 
     .cards {
       display: grid;
       gap: 11px;
     }
+
     .card {
       display: grid;
       grid-template-columns: 122px minmax(0, 1fr);
@@ -345,15 +462,25 @@
       animation: rise 0.38s cubic-bezier(0.16, 1, 0.3, 1);
       transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s, box-shadow 0.18s;
     }
+
     .card:hover {
       transform: translateY(-2px);
       border-color: rgba(234, 95, 36, 0.32);
       box-shadow: 0 14px 34px rgba(62, 43, 18, 0.08);
     }
+
     @keyframes rise {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
+
     .thumb {
       width: 122px;
       height: 78px;
@@ -365,7 +492,13 @@
       justify-content: center;
       color: var(--muted);
     }
-    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .card h3 {
       margin: 0 0 5px;
       font-family: 'Instrument Serif', serif;
@@ -375,6 +508,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
     .meta {
       color: var(--muted);
       font-size: 0.68rem;
@@ -382,6 +516,7 @@
       letter-spacing: 0.04em;
       line-height: 1.5;
     }
+
     .card-actions {
       display: flex;
       flex-wrap: wrap;
@@ -389,6 +524,7 @@
       margin-top: 10px;
       align-items: center;
     }
+
     .mini {
       border: 1.5px solid var(--line);
       border-radius: 999px;
@@ -401,13 +537,28 @@
       text-decoration: none;
       transition: transform 0.16s, border-color 0.16s, background 0.16s, color 0.16s;
     }
+
     .mini:hover {
       transform: translateY(-1px);
       border-color: rgba(234, 95, 36, 0.44);
     }
-    .mini.hot { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-    .mini.good { color: var(--green); border-color: rgba(37, 116, 71, 0.35); }
-    .mini.bad { color: var(--red); border-color: rgba(184, 63, 55, 0.35); }
+
+    .mini.hot {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--paper);
+    }
+
+    .mini.good {
+      color: var(--green);
+      border-color: rgba(37, 116, 71, 0.35);
+    }
+
+    .mini.bad {
+      color: var(--red);
+      border-color: rgba(184, 63, 55, 0.35);
+    }
+
     .quality-select {
       width: auto;
       max-width: 118px;
@@ -421,13 +572,15 @@
       gap: 10px;
       margin-bottom: 16px;
     }
+
     .progress {
       height: 10px;
       overflow: hidden;
       border-radius: 999px;
       border: 1.5px solid var(--line);
-      background: rgba(255,255,255,0.4);
+      background: rgba(255, 255, 255, 0.4);
     }
+
     .progress span {
       display: block;
       height: 100%;
@@ -435,10 +588,12 @@
       background: linear-gradient(90deg, var(--accent), #f4b24f);
       transition: width 0.28s ease;
     }
+
     .statusbar.running .progress span {
       background-size: 180% 100%;
       animation: progress-sheen 1.35s linear infinite;
     }
+
     .empty {
       position: relative;
       overflow: hidden;
@@ -447,8 +602,9 @@
       border-radius: 18px;
       color: var(--muted);
       line-height: 1.7;
-      background: rgba(255,255,255,0.28);
+      background: rgba(255, 255, 255, 0.28);
     }
+
     .empty strong {
       display: block;
       margin-bottom: 4px;
@@ -457,6 +613,7 @@
       font-size: 1.25rem;
       font-weight: 400;
     }
+
     .empty.loading::after {
       content: '';
       position: absolute;
@@ -465,10 +622,15 @@
       transform: translateX(-100%);
       animation: sweep 1.25s ease-in-out infinite;
     }
+
     .error {
       color: var(--red);
     }
-    .error.shake { animation: soft-shake 0.34s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    .error.shake {
+      animation: soft-shake 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
     .footer {
       margin-top: 24px;
       color: var(--muted);
@@ -478,6 +640,7 @@
       letter-spacing: 0.08em;
       line-height: 1.8;
     }
+
     .toast {
       position: fixed;
       right: 18px;
@@ -497,10 +660,12 @@
       transform: translateY(10px);
       transition: opacity 0.2s, transform 0.2s;
     }
+
     .toast.show {
       opacity: 1;
       transform: translateY(0);
     }
+
     .burst {
       position: fixed;
       left: 50%;
@@ -508,6 +673,7 @@
       z-index: 19;
       pointer-events: none;
     }
+
     .spark {
       position: absolute;
       width: 8px;
@@ -520,37 +686,94 @@
     }
 
     @keyframes page-in {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
+
     @keyframes live-dot {
-      0%, 100% { transform: scale(0.84); opacity: 0.72; }
-      50% { transform: scale(1); opacity: 1; }
+
+      0%,
+      100% {
+        transform: scale(0.84);
+        opacity: 0.72;
+      }
+
+      50% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
+
     @keyframes tick-pop {
-      0% { transform: scale(0.82); }
-      100% { transform: scale(1); }
+      0% {
+        transform: scale(0.82);
+      }
+
+      100% {
+        transform: scale(1);
+      }
     }
+
     @keyframes progress-sheen {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 180% 50%; }
+      0% {
+        background-position: 0% 50%;
+      }
+
+      100% {
+        background-position: 180% 50%;
+      }
     }
+
     @keyframes sweep {
-      to { transform: translateX(100%); }
+      to {
+        transform: translateX(100%);
+      }
     }
+
     @keyframes soft-shake {
-      0%, 100% { transform: translateX(0); }
-      35% { transform: translateX(-4px); }
-      70% { transform: translateX(3px); }
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      35% {
+        transform: translateX(-4px);
+      }
+
+      70% {
+        transform: translateX(3px);
+      }
     }
+
     @keyframes spark-out {
-      0% { opacity: 0; transform: rotate(var(--angle)) translateY(0) scale(0.7); }
-      18% { opacity: 1; }
-      100% { opacity: 0; transform: rotate(var(--angle)) translateY(-84px) scale(0.15); }
+      0% {
+        opacity: 0;
+        transform: rotate(var(--angle)) translateY(0) scale(0.7);
+      }
+
+      18% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+        transform: rotate(var(--angle)) translateY(-84px) scale(0.15);
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
+
+      *,
+      *::before,
+      *::after {
         animation-duration: 0.001ms !important;
         animation-iteration-count: 1 !important;
         scroll-behavior: auto !important;
@@ -559,47 +782,103 @@
     }
 
     @media (max-width: 1080px) {
-      .layout-board { grid-template-columns: 1fr; }
+      .layout-board {
+        grid-template-columns: 1fr;
+      }
+
       .brand {
         grid-template-columns: 1fr;
         min-height: auto;
         max-height: none;
       }
-      .brand-right { justify-items: start; }
-      .kicker { justify-self: start; }
+
+      .brand-left {
+        width: fit-content;
+        max-width: 100%;
+      }
+
+      .brand-right {
+        justify-items: start;
+      }
+
+      .kicker {
+        justify-self: start;
+      }
+
       .brand-copy {
         margin-top: 18px;
         max-width: 72ch;
         text-align: left;
       }
+
       .cap-row {
         justify-content: flex-start;
         justify-self: start;
       }
-      .run-panel { min-height: auto; }
+
+      .run-panel {
+        min-height: auto;
+      }
     }
+
     @media (max-width: 560px) {
-      .shell { width: min(100% - 20px, 1320px); padding-top: 18px; }
-      .brand, .console, .panel { border-radius: 18px; }
-      .brand { padding: 24px; }
-      .brand h1 { font-size: clamp(3.2rem, 14vw, 4.4rem); }
-      .option-grid { grid-template-columns: 1fr; }
-      .actions { flex-direction: column; }
-      .card { grid-template-columns: 1fr; }
-      .thumb { width: 100%; height: 170px; }
-      .card h3 { white-space: normal; }
+      .shell {
+        width: min(100% - 20px, 1320px);
+        padding-top: 18px;
+      }
+
+      .brand,
+      .console,
+      .panel {
+        border-radius: 18px;
+      }
+
+      .brand {
+        padding: 24px;
+      }
+
+      .brand-title-clip,
+      .brand-title-control {
+        font-size: clamp(3.2rem, 14vw, 4.4rem);
+      }
+
+      .option-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .card {
+        grid-template-columns: 1fr;
+      }
+
+      .thumb {
+        width: 100%;
+        height: 170px;
+      }
+
+      .card h3 {
+        white-space: normal;
+      }
     }
   </style>
 </head>
+
 <body>
   <main class="shell">
     <header class="brand">
       <div class="brand-left">
-        <h1>Re<em>Clip</em> Control</h1>
-        <span class="kicker">One local console · every export</span>
+        <h1 aria-label="ReClip Control">
+          <span class="brand-title-clip">Re<em>Clip</em></span>
+          <span class="brand-title-control">Control</span>
+        </h1>
+        <span class="kicker">One local console · Every export</span>
       </div>
       <div class="brand-right">
-        <p class="brand-copy">Paste a link, channel, or handle. ReClip figures out the workflow and turns it into clean downloads, transcripts, clips, metadata, and ZIP bundles from one self-hosted desk.</p>
+        <p class="brand-copy">Paste a video from any platform, YouTube channel or handle, and get it turned into clean audios,
+          transcripts, clips, & metadata.</p>
         <div class="cap-row" id="caps">
           <span class="cap">yt-dlp</span>
           <span class="cap">ffmpeg</span>
@@ -613,7 +892,8 @@
       <section class="main-stage">
         <div class="console">
           <label for="sourceInput">Paste media URLs, YouTube handles, channel IDs, or video IDs</label>
-          <textarea id="sourceInput" placeholder="https://youtu.be/...&#10;@channel&#10;https://www.tiktok.com/..."></textarea>
+          <textarea id="sourceInput"
+            placeholder="https://youtu.be/...&#10;@channel&#10;https://www.tiktok.com/..."></textarea>
           <div class="actions">
             <button class="btn primary" id="analyzeBtn">Analyze Input</button>
             <button class="btn ghost" id="clearBtn">Clear</button>
@@ -735,13 +1015,15 @@
             <div class="card-actions" id="jobArtifacts"></div>
           </div>
           <div id="cards" class="cards">
-            <div class="empty"><strong>Desk is clean</strong>Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.</div>
+            <div class="empty"><strong>Desk is clean</strong>Paste links, a YouTube handle, or a channel ID. ReClip will
+              detect the workflow and keep the noisy controls out of the way.</div>
           </div>
         </div>
       </aside>
     </section>
 
-    <div class="footer">YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Vimeo · Twitch · SoundCloud · 1000+ more</div>
+    <div class="footer">YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Vimeo · Twitch · SoundCloud ·
+      1000+ more</div>
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="burst" id="burst" aria-hidden="true"></div>
@@ -820,7 +1102,7 @@
       try {
         const res = await fetch('/api/capabilities');
         state.capabilities = await res.json();
-      } catch {}
+      } catch { }
       $('cap-aai').classList.toggle('on', !!state.capabilities.assemblyai);
       $('cap-gemini').classList.toggle('on', !!state.capabilities.gemini);
       syncOptions();
@@ -1092,4 +1374,5 @@
     syncOptions();
   </script>
 </body>
+
 </html>
