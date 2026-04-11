@@ -75,7 +75,7 @@
       position: relative;
       overflow: hidden;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(340px, 0.95fr) minmax(300px, 1fr) auto;
       column-gap: 28px;
       align-items: end;
       margin-bottom: 22px;
@@ -116,7 +116,7 @@
       animation: live-dot 2.6s ease-in-out infinite;
     }
     .brand h1 {
-      margin: 38px 0 14px;
+      margin: 38px 0 0;
       max-width: 560px;
       font-family: 'Instrument Serif', serif;
       font-size: clamp(3.4rem, 8vw, 7.8rem);
@@ -125,8 +125,9 @@
       letter-spacing: -0.055em;
     }
     .brand h1 em { color: var(--accent); font-style: italic; }
-    .brand p {
-      max-width: 760px;
+    .brand-copy {
+      margin: 0 0 8px;
+      max-width: 560px;
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.75;
@@ -137,6 +138,7 @@
       gap: 8px;
       justify-content: flex-end;
       max-width: 360px;
+      margin-bottom: 8px;
     }
     .cap {
       padding: 7px 10px;
@@ -527,6 +529,7 @@
         grid-template-columns: 1fr;
         min-height: auto;
       }
+      .brand-copy { margin-top: 18px; }
       .cap-row {
         justify-content: flex-start;
         max-width: none;
@@ -552,8 +555,8 @@
       <div>
         <span class="kicker">One local console · every export</span>
         <h1>Re<em>Clip</em> Control</h1>
-        <p>Paste a link, channel, or handle. ReClip figures out the workflow and turns it into clean downloads, transcripts, clips, metadata, and ZIP bundles from one self-hosted desk.</p>
       </div>
+      <p class="brand-copy">Paste a link, channel, or handle. ReClip figures out the workflow and turns it into clean downloads, transcripts, clips, metadata, and ZIP bundles from one self-hosted desk.</p>
       <div class="cap-row" id="caps">
         <span class="cap">yt-dlp</span>
         <span class="cap">ffmpeg</span>
