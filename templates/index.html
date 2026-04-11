@@ -58,7 +58,7 @@
     }
     .layout-board {
       display: grid;
-      grid-template-columns: minmax(240px, 0.74fr) minmax(360px, 1.08fr) minmax(320px, 0.9fr);
+      grid-template-columns: minmax(420px, 1fr) minmax(340px, 0.78fr);
       gap: 22px;
       align-items: start;
     }
@@ -71,11 +71,14 @@
     }
     .brand {
       padding: 34px;
-      min-height: 690px;
+      min-height: 300px;
       position: relative;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: 28px;
+      align-items: end;
+      margin-bottom: 22px;
     }
     .brand::before {
       content: '';
@@ -123,17 +126,17 @@
     }
     .brand h1 em { color: var(--accent); font-style: italic; }
     .brand p {
-      max-width: 560px;
+      max-width: 760px;
       color: var(--muted);
-      font-size: 0.92rem;
-      line-height: 1.7;
+      font-size: 0.98rem;
+      line-height: 1.75;
     }
     .cap-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-top: auto;
-      padding-top: 24px;
+      justify-content: flex-end;
+      max-width: 360px;
     }
     .cap {
       padding: 7px 10px;
@@ -520,8 +523,15 @@
 
     @media (max-width: 1080px) {
       .layout-board { grid-template-columns: 1fr; }
-      .brand { min-height: auto; }
-      .cap-row { margin-top: 24px; }
+      .brand {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      .cap-row {
+        justify-content: flex-start;
+        max-width: none;
+        margin-top: 24px;
+      }
       .run-panel { min-height: auto; }
     }
     @media (max-width: 560px) {
@@ -538,19 +548,21 @@
 </head>
 <body>
   <main class="shell">
-    <section class="layout-board">
-      <div class="brand">
-        <span class="kicker">One console · every export</span>
+    <header class="brand">
+      <div>
+        <span class="kicker">One local console · every export</span>
         <h1>Re<em>Clip</em> Control</h1>
-        <p>Quick MP4/MP3 downloads still work. YouTube channels and videos now unlock transcripts, clipping, metadata, fallback transcription, cleanup, individual artifacts, and full ZIP exports.</p>
-        <div class="cap-row" id="caps">
-          <span class="cap">yt-dlp</span>
-          <span class="cap">ffmpeg</span>
-          <span class="cap" id="cap-aai">AssemblyAI</span>
-          <span class="cap" id="cap-gemini">Gemini</span>
-        </div>
+        <p>Paste a link, channel, or handle. ReClip figures out the workflow and turns it into clean downloads, transcripts, clips, metadata, and ZIP bundles from one self-hosted desk.</p>
       </div>
+      <div class="cap-row" id="caps">
+        <span class="cap">yt-dlp</span>
+        <span class="cap">ffmpeg</span>
+        <span class="cap" id="cap-aai">AssemblyAI</span>
+        <span class="cap" id="cap-gemini">Gemini</span>
+      </div>
+    </header>
 
+    <section class="layout-board">
       <section class="main-stage">
         <div class="console">
           <label for="sourceInput">Paste media URLs, YouTube handles, channel IDs, or video IDs</label>
