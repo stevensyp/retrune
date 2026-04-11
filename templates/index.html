@@ -51,17 +51,16 @@
     }
 
     .shell {
-      width: min(1180px, calc(100% - 32px));
+      width: min(1320px, calc(100% - 32px));
       margin: 0 auto;
       padding: 42px 0 72px;
       animation: page-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .hero {
+    .layout-board {
       display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
+      grid-template-columns: minmax(240px, 0.74fr) minmax(360px, 1.08fr) minmax(320px, 0.9fr);
       gap: 22px;
-      align-items: stretch;
-      margin-bottom: 22px;
+      align-items: start;
     }
     .brand, .console {
       border: 1.5px solid var(--line);
@@ -72,9 +71,11 @@
     }
     .brand {
       padding: 34px;
-      min-height: 360px;
+      min-height: 690px;
       position: relative;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
     .brand::before {
       content: '';
@@ -131,7 +132,8 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-top: 24px;
+      margin-top: auto;
+      padding-top: 24px;
     }
     .cap {
       padding: 7px 10px;
@@ -147,6 +149,7 @@
 
     .console {
       padding: 22px;
+      min-height: 226px;
       transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
     }
     .console.listening {
@@ -209,11 +212,10 @@
       color: var(--ink);
     }
 
-    .grid {
+    .main-stage {
       display: grid;
-      grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
       gap: 22px;
-      align-items: start;
+      align-items: stretch;
     }
     .panel {
       border: 1.5px solid var(--line);
@@ -221,6 +223,20 @@
       background: rgba(255, 250, 240, 0.84);
       box-shadow: var(--shadow);
       overflow: hidden;
+    }
+    .run-panel {
+      min-height: 690px;
+      display: flex;
+      flex-direction: column;
+    }
+    .run-panel .panel-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .run-panel .cards {
+      flex: 1;
+      align-content: start;
     }
     .panel-head {
       display: flex;
@@ -502,12 +518,14 @@
       }
     }
 
-    @media (max-width: 880px) {
-      .hero, .grid { grid-template-columns: 1fr; }
+    @media (max-width: 1080px) {
+      .layout-board { grid-template-columns: 1fr; }
       .brand { min-height: auto; }
+      .cap-row { margin-top: 24px; }
+      .run-panel { min-height: auto; }
     }
     @media (max-width: 560px) {
-      .shell { width: min(100% - 20px, 1180px); padding-top: 18px; }
+      .shell { width: min(100% - 20px, 1320px); padding-top: 18px; }
       .brand, .console, .panel { border-radius: 18px; }
       .brand { padding: 24px; }
       .option-grid { grid-template-columns: 1fr; }
@@ -520,7 +538,7 @@
 </head>
 <body>
   <main class="shell">
-    <section class="hero">
+    <section class="layout-board">
       <div class="brand">
         <span class="kicker">One console · every export</span>
         <h1>Re<em>Clip</em> Control</h1>
@@ -533,120 +551,120 @@
         </div>
       </div>
 
-      <div class="console">
-        <label for="sourceInput">Paste media URLs, YouTube handles, channel IDs, or video IDs</label>
-        <textarea id="sourceInput" placeholder="https://youtu.be/...&#10;@channel&#10;https://www.tiktok.com/..."></textarea>
-        <div class="actions">
-          <button class="btn primary" id="analyzeBtn">Analyze Input</button>
-          <button class="btn ghost" id="clearBtn">Clear</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="grid">
-      <div class="panel">
-        <div class="panel-head">
-          <h2 class="panel-title">Export Shape</h2>
-          <div class="panel-note" id="modeNote">Analyze input to unlock smart options.</div>
-        </div>
-        <div class="panel-body">
-          <div class="option-grid">
-            <div class="field">
-              <label for="outputFormat">Output</label>
-              <select id="outputFormat">
-                <option value="video">Video</option>
-                <option value="audio">Audio</option>
-                <option value="text">Transcript</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="quality">Quality</label>
-              <select id="quality">
-                <option value="optimized">Optimized</option>
-                <option value="highest">Highest</option>
-                <option value="compressed">Compressed</option>
-              </select>
-            </div>
-            <div class="field" id="textExtField">
-              <label for="textExtension">Transcript Format</label>
-              <select id="textExtension">
-                <option value="txt">TXT</option>
-                <option value="md">Markdown</option>
-                <option value="json">JSON</option>
-              </select>
-            </div>
-            <div class="field" id="audioExtField">
-              <label for="audioExtension">Audio Format</label>
-              <select id="audioExtension">
-                <option value="mp3">MP3</option>
-                <option value="wav">WAV</option>
-              </select>
-            </div>
-            <div class="field" id="videoExtField">
-              <label for="videoExtension">Video Format</label>
-              <select id="videoExtension">
-                <option value="mp4">MP4</option>
-                <option value="mkv">MKV</option>
-              </select>
-            </div>
-            <div class="field channel-only">
-              <label for="maxVideos">Max Videos</label>
-              <input id="maxVideos" type="number" min="1" value="5">
-            </div>
-            <div class="field channel-only">
-              <label for="order">Sort</label>
-              <select id="order">
-                <option value="date">Newest first</option>
-                <option value="popularity">Popularity</option>
-              </select>
-            </div>
-            <div class="field video-only">
-              <label for="clipStart">Clip From</label>
-              <input id="clipStart" type="text" placeholder="00:00">
-            </div>
-            <div class="field video-only">
-              <label for="clipEnd">Clip To</label>
-              <input id="clipEnd" type="text" placeholder="blank = end">
-            </div>
-            <label class="toggle transcript-option">
-              <input id="transcription" type="checkbox">
-              Include transcript with audio/video
-            </label>
-            <div class="field transcript-controls">
-              <label for="transcriptionFormat">Attached Transcript</label>
-              <select id="transcriptionFormat">
-                <option value="txt">TXT</option>
-                <option value="md">Markdown</option>
-                <option value="json">JSON</option>
-              </select>
-            </div>
-            <div class="field transcript-controls">
-              <label for="transcriptFallback">Transcript Fallback</label>
-              <select id="transcriptFallback">
-                <option value="auto_captions">Captions before AssemblyAI</option>
-                <option value="assemblyai_transcripts">AssemblyAI first</option>
-              </select>
-            </div>
-            <label class="toggle transcript-controls">
-              <input id="geminiCleanup" type="checkbox">
-              Clean auto captions with Gemini
-            </label>
-            <label class="toggle">
-              <input id="videoMetadata" type="checkbox" checked>
-              Include video metadata
-            </label>
-            <label class="toggle channel-only">
-              <input id="channelMetadata" type="checkbox">
-              Include channel metadata
-            </label>
-          </div>
+      <section class="main-stage">
+        <div class="console">
+          <label for="sourceInput">Paste media URLs, YouTube handles, channel IDs, or video IDs</label>
+          <textarea id="sourceInput" placeholder="https://youtu.be/...&#10;@channel&#10;https://www.tiktok.com/..."></textarea>
           <div class="actions">
-            <button class="btn primary" id="startBtn" disabled>Start Export</button>
+            <button class="btn primary" id="analyzeBtn">Analyze Input</button>
+            <button class="btn ghost" id="clearBtn">Clear</button>
           </div>
         </div>
-      </div>
 
-      <div class="panel">
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Export Shape</h2>
+            <div class="panel-note" id="modeNote">Analyze input to unlock smart options.</div>
+          </div>
+          <div class="panel-body">
+            <div class="option-grid">
+              <div class="field">
+                <label for="outputFormat">Output</label>
+                <select id="outputFormat">
+                  <option value="video">Video</option>
+                  <option value="audio">Audio</option>
+                  <option value="text">Transcript</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="quality">Quality</label>
+                <select id="quality">
+                  <option value="optimized">Optimized</option>
+                  <option value="highest">Highest</option>
+                  <option value="compressed">Compressed</option>
+                </select>
+              </div>
+              <div class="field" id="textExtField">
+                <label for="textExtension">Transcript Format</label>
+                <select id="textExtension">
+                  <option value="txt">TXT</option>
+                  <option value="md">Markdown</option>
+                  <option value="json">JSON</option>
+                </select>
+              </div>
+              <div class="field" id="audioExtField">
+                <label for="audioExtension">Audio Format</label>
+                <select id="audioExtension">
+                  <option value="mp3">MP3</option>
+                  <option value="wav">WAV</option>
+                </select>
+              </div>
+              <div class="field" id="videoExtField">
+                <label for="videoExtension">Video Format</label>
+                <select id="videoExtension">
+                  <option value="mp4">MP4</option>
+                  <option value="mkv">MKV</option>
+                </select>
+              </div>
+              <div class="field channel-only">
+                <label for="maxVideos">Max Videos</label>
+                <input id="maxVideos" type="number" min="1" value="5">
+              </div>
+              <div class="field channel-only">
+                <label for="order">Sort</label>
+                <select id="order">
+                  <option value="date">Newest first</option>
+                  <option value="popularity">Popularity</option>
+                </select>
+              </div>
+              <div class="field video-only">
+                <label for="clipStart">Clip From</label>
+                <input id="clipStart" type="text" placeholder="00:00">
+              </div>
+              <div class="field video-only">
+                <label for="clipEnd">Clip To</label>
+                <input id="clipEnd" type="text" placeholder="blank = end">
+              </div>
+              <label class="toggle transcript-option">
+                <input id="transcription" type="checkbox">
+                Include transcript with audio/video
+              </label>
+              <div class="field transcript-controls">
+                <label for="transcriptionFormat">Attached Transcript</label>
+                <select id="transcriptionFormat">
+                  <option value="txt">TXT</option>
+                  <option value="md">Markdown</option>
+                  <option value="json">JSON</option>
+                </select>
+              </div>
+              <div class="field transcript-controls">
+                <label for="transcriptFallback">Transcript Fallback</label>
+                <select id="transcriptFallback">
+                  <option value="auto_captions">Captions before AssemblyAI</option>
+                  <option value="assemblyai_transcripts">AssemblyAI first</option>
+                </select>
+              </div>
+              <label class="toggle transcript-controls">
+                <input id="geminiCleanup" type="checkbox">
+                Clean auto captions with Gemini
+              </label>
+              <label class="toggle">
+                <input id="videoMetadata" type="checkbox" checked>
+                Include video metadata
+              </label>
+              <label class="toggle channel-only">
+                <input id="channelMetadata" type="checkbox">
+                Include channel metadata
+              </label>
+            </div>
+            <div class="actions">
+              <button class="btn primary" id="startBtn" disabled>Start Export</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel run-panel">
         <div class="panel-head">
           <h2 class="panel-title">Run Desk</h2>
           <div class="panel-note" id="summary">No input analyzed yet.</div>
@@ -661,7 +679,7 @@
             <div class="empty"><strong>Desk is clean</strong>Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.</div>
           </div>
         </div>
-      </div>
+      </aside>
     </section>
 
     <div class="footer">YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Vimeo · Twitch · SoundCloud · 1000+ more</div>
