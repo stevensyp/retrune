@@ -75,9 +75,8 @@
       position: relative;
       overflow: hidden;
       display: grid;
-      grid-template-columns: minmax(340px, 0.95fr) minmax(300px, 1fr) auto;
-      column-gap: 28px;
-      align-items: end;
+      grid-template-rows: auto minmax(0, 1fr);
+      row-gap: 34px;
       margin-bottom: 22px;
     }
     .brand::before {
@@ -93,6 +92,20 @@
       transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .brand:hover::before { transform: translate(-10px, -8px) scale(1.04); }
+    .brand-top,
+    .brand-main {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(340px, 0.95fr) minmax(300px, 1fr);
+      gap: 28px;
+    }
+    .brand-top {
+      align-items: start;
+    }
+    .brand-main {
+      align-items: end;
+    }
     .kicker {
       display: inline-flex;
       gap: 8px;
@@ -116,7 +129,7 @@
       animation: live-dot 2.6s ease-in-out infinite;
     }
     .brand h1 {
-      margin: 38px 0 0;
+      margin: 0;
       max-width: 560px;
       font-family: 'Instrument Serif', serif;
       font-size: clamp(3.4rem, 8vw, 7.8rem);
@@ -137,8 +150,6 @@
       flex-wrap: wrap;
       gap: 8px;
       justify-content: flex-end;
-      max-width: 360px;
-      margin-bottom: 8px;
     }
     .cap {
       padding: 7px 10px;
@@ -526,14 +537,15 @@
     @media (max-width: 1080px) {
       .layout-board { grid-template-columns: 1fr; }
       .brand {
-        grid-template-columns: 1fr;
         min-height: auto;
+      }
+      .brand-top,
+      .brand-main {
+        grid-template-columns: 1fr;
       }
       .brand-copy { margin-top: 18px; }
       .cap-row {
         justify-content: flex-start;
-        max-width: none;
-        margin-top: 24px;
       }
       .run-panel { min-height: auto; }
     }
@@ -552,16 +564,18 @@
 <body>
   <main class="shell">
     <header class="brand">
-      <div>
+      <div class="brand-top">
         <span class="kicker">One local console · every export</span>
-        <h1>Re<em>Clip</em> Control</h1>
+        <div class="cap-row" id="caps">
+          <span class="cap">yt-dlp</span>
+          <span class="cap">ffmpeg</span>
+          <span class="cap" id="cap-aai">AssemblyAI</span>
+          <span class="cap" id="cap-gemini">Gemini</span>
+        </div>
       </div>
-      <p class="brand-copy">Paste a link, channel, or handle. ReClip figures out the workflow and turns it into clean downloads, transcripts, clips, metadata, and ZIP bundles from one self-hosted desk.</p>
-      <div class="cap-row" id="caps">
-        <span class="cap">yt-dlp</span>
-        <span class="cap">ffmpeg</span>
-        <span class="cap" id="cap-aai">AssemblyAI</span>
-        <span class="cap" id="cap-gemini">Gemini</span>
+      <div class="brand-main">
+        <h1>Re<em>Clip</em> Control</h1>
+        <p class="brand-copy">Paste a link, channel, or handle. ReClip figures out the workflow and turns it into clean downloads, transcripts, clips, metadata, and ZIP bundles from one self-hosted desk.</p>
       </div>
     </header>
 
