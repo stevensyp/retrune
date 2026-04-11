@@ -172,7 +172,6 @@
       font-size: 0.68rem;
       letter-spacing: 0.075em;
       text-transform: uppercase;
-      background: rgba(255, 250, 240, 0.58);
     }
 
     .kicker::before {
@@ -250,8 +249,8 @@
     }
 
     .console {
-      padding: 22px;
-      min-height: 226px;
+      padding: 30px 30px 26px;
+      min-height: 520px;
       transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
     }
 
@@ -259,6 +258,36 @@
       border-color: rgba(234, 95, 36, 0.42);
       box-shadow: 0 28px 90px rgba(234, 95, 36, 0.16);
       transform: translateY(-1px);
+    }
+
+    .console-head {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.72fr) minmax(260px, 1fr);
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 26px;
+    }
+
+    .console-title {
+      margin: 0;
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(2.5rem, 4vw, 4.4rem);
+      font-weight: 400;
+      line-height: 0.9;
+      letter-spacing: -0.055em;
+    }
+
+    .console-head label {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(0.78rem, 1.1vw, 1rem);
+      line-height: 1.85;
+      letter-spacing: 0.12em;
+      text-align: right;
+    }
+
+    .input-frame {
+      position: relative;
     }
 
     label {
@@ -272,16 +301,33 @@
 
     textarea {
       width: 100%;
-      min-height: 138px;
+      min-height: 260px;
       resize: vertical;
       border: 1.5px solid var(--line);
-      border-radius: 18px;
-      padding: 18px;
+      border-radius: 24px;
+      padding: 32px 230px 32px 34px;
       background: #fffdf8;
       color: var(--ink);
       outline: none;
-      line-height: 1.55;
+      font-size: clamp(1.15rem, 1.75vw, 2rem);
+      letter-spacing: 0.13em;
+      line-height: 1.7;
       transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
+    }
+
+    textarea::placeholder {
+      color: rgba(133, 121, 106, 0.78);
+    }
+
+    .input-hint {
+      position: absolute;
+      right: 34px;
+      top: 34px;
+      color: rgba(133, 121, 106, 0.74);
+      font-size: clamp(0.78rem, 1.05vw, 1rem);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      pointer-events: none;
     }
 
     textarea:focus,
@@ -299,6 +345,27 @@
       display: flex;
       gap: 10px;
       margin-top: 14px;
+    }
+
+    .console-actions {
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .console-actions .btn {
+      min-height: 68px;
+      border-radius: 22px;
+      font-size: clamp(1rem, 1.4vw, 1.35rem);
+      letter-spacing: 0.12em;
+    }
+
+    .console-actions .btn.primary {
+      flex: 1 1 auto;
+    }
+
+    .console-actions .btn.ghost {
+      flex: 0 0 154px;
+      background: rgba(255, 250, 240, 0.42);
     }
 
     .btn {
@@ -842,6 +909,37 @@
         font-size: clamp(3.2rem, 14vw, 4.4rem);
       }
 
+      .console {
+        padding: 24px;
+        min-height: auto;
+      }
+
+      .console-head {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .console-head label {
+        text-align: left;
+      }
+
+      textarea {
+        min-height: 230px;
+        padding: 28px 24px;
+        font-size: 1.15rem;
+      }
+
+      .input-hint {
+        position: static;
+        display: block;
+        margin: 10px 0 0;
+      }
+
+      .console-actions .btn.ghost {
+        flex-basis: auto;
+      }
+
       .option-grid {
         grid-template-columns: 1fr;
       }
@@ -891,10 +989,16 @@
     <section class="layout-board">
       <section class="main-stage">
         <div class="console">
-          <label for="sourceInput">Paste media URLs, YouTube handles, channel IDs, or video IDs</label>
-          <textarea id="sourceInput"
-            placeholder="https://youtu.be/...&#10;@channel&#10;https://www.tiktok.com/..."></textarea>
-          <div class="actions">
+          <div class="console-head">
+            <h2 class="console-title">Import Elements</h2>
+            <label for="sourceInput">Paste media URLs, YouTube handles,<br>channel IDs, or video IDs</label>
+          </div>
+          <div class="input-frame">
+            <textarea id="sourceInput"
+              placeholder="https://youtu.be/...&#10;@channel&#10;https://www.tiktok.com/..."></textarea>
+            <span class="input-hint">One item per line</span>
+          </div>
+          <div class="actions console-actions">
             <button class="btn primary" id="analyzeBtn">Analyze Input</button>
             <button class="btn ghost" id="clearBtn">Clear</button>
           </div>
