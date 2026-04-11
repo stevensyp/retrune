@@ -249,8 +249,8 @@
     }
 
     .console {
-      padding: 30px 30px 26px;
-      min-height: 520px;
+      padding: 22px 22px 20px;
+      min-height: 0;
       transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
     }
 
@@ -263,25 +263,25 @@
     .console-head {
       display: grid;
       grid-template-columns: minmax(220px, 0.72fr) minmax(260px, 1fr);
-      gap: 24px;
+      gap: 20px;
       align-items: start;
-      margin-bottom: 26px;
+      margin-bottom: 18px;
     }
 
     .console-title {
       margin: 0;
       font-family: 'Instrument Serif', serif;
-      font-size: clamp(2.5rem, 4vw, 4.4rem);
+      font-size: clamp(2.15rem, 3.2vw, 3.7rem);
       font-weight: 400;
-      line-height: 0.9;
+      line-height: 0.86;
       letter-spacing: -0.055em;
     }
 
     .console-head label {
       margin: 0;
       color: var(--muted);
-      font-size: clamp(0.78rem, 1.1vw, 1rem);
-      line-height: 1.85;
+      font-size: clamp(0.7rem, 0.92vw, 0.88rem);
+      line-height: 1.8;
       letter-spacing: 0.12em;
       text-align: right;
     }
@@ -301,17 +301,17 @@
 
     textarea {
       width: 100%;
-      min-height: 260px;
+      min-height: 188px;
       resize: vertical;
       border: 1.5px solid var(--line);
-      border-radius: 24px;
-      padding: 32px 230px 32px 34px;
+      border-radius: 20px;
+      padding: 26px 180px 24px 28px;
       background: #fffdf8;
       color: var(--ink);
       outline: none;
-      font-size: clamp(1.15rem, 1.75vw, 2rem);
-      letter-spacing: 0.13em;
-      line-height: 1.7;
+      font-size: clamp(1rem, 1.24vw, 1.42rem);
+      letter-spacing: 0.11em;
+      line-height: 1.55;
       transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
     }
 
@@ -321,10 +321,10 @@
 
     .input-hint {
       position: absolute;
-      right: 34px;
-      top: 34px;
+      right: 28px;
+      top: 28px;
       color: rgba(133, 121, 106, 0.74);
-      font-size: clamp(0.78rem, 1.05vw, 1rem);
+      font-size: clamp(0.68rem, 0.86vw, 0.84rem);
       letter-spacing: 0.12em;
       text-transform: uppercase;
       pointer-events: none;
@@ -348,14 +348,14 @@
     }
 
     .console-actions {
-      gap: 18px;
-      margin-top: 26px;
+      gap: 12px;
+      margin-top: 20px;
     }
 
     .console-actions .btn {
-      min-height: 68px;
-      border-radius: 22px;
-      font-size: clamp(1rem, 1.4vw, 1.35rem);
+      min-height: 54px;
+      border-radius: 16px;
+      font-size: clamp(0.88rem, 1.08vw, 1.05rem);
       letter-spacing: 0.12em;
     }
 
@@ -364,7 +364,7 @@
     }
 
     .console-actions .btn.ghost {
-      flex: 0 0 154px;
+      flex: 0 0 112px;
       background: rgba(255, 250, 240, 0.42);
     }
 
