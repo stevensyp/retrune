@@ -262,8 +262,8 @@
 
     .console-head {
       display: grid;
-      grid-template-columns: minmax(220px, 0.72fr) minmax(260px, 1fr);
-      gap: 20px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
       align-items: start;
       margin-bottom: 18px;
     }
@@ -271,6 +271,7 @@
     .console-title-wrap {
       display: grid;
       gap: 8px;
+      min-width: 0;
     }
 
     .console-title {
@@ -290,6 +291,13 @@
       line-height: 1.5;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+    }
+
+    .console-head label {
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .mode-toggle {
@@ -329,10 +337,6 @@
       box-shadow: 0 0 0 4px rgba(234, 95, 36, 0.08);
     }
 
-    .console-head label {
-      text-align: right;
-    }
-
     .input-frame {
       position: relative;
     }
@@ -360,6 +364,27 @@
       letter-spacing: 0.04em;
       line-height: 1.55;
       transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
+    }
+
+    .console.mode-single textarea {
+      height: 58px;
+      min-height: 58px;
+      max-height: 58px;
+      resize: none;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: pre;
+      padding: 17px 20px 15px;
+      line-height: 1.25;
+    }
+
+    .console.mode-batch textarea {
+      height: auto;
+      min-height: 188px;
+      max-height: none;
+      overflow: auto;
+      white-space: pre-wrap;
+      padding: 26px 180px 24px 28px;
     }
 
     textarea::placeholder {
@@ -460,6 +485,35 @@
 
     .params-empty {
       max-height: 160px;
+    }
+
+    .export-preview {
+      display: grid;
+      grid-template-columns: 122px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 13px;
+      border: 1.5px solid var(--line);
+      border-radius: 18px;
+      background: #fffdf8;
+      animation: rise 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .export-preview .thumb {
+      width: 122px;
+      height: 78px;
+    }
+
+    .export-preview h3 {
+      margin: 0 0 7px;
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+      line-height: 1.1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .field.span-2,
@@ -1075,6 +1129,8 @@
       }
 
       .console-head label {
+        white-space: normal;
+        overflow: visible;
         text-align: left;
       }
 
@@ -1082,6 +1138,20 @@
         min-height: 230px;
         padding: 28px 24px;
         font-size: 1.15rem;
+      }
+
+      .console.mode-single textarea {
+        height: 56px;
+        min-height: 56px;
+        max-height: 56px;
+        padding: 16px 18px;
+        font-size: 0.92rem;
+      }
+
+      .console.mode-batch textarea {
+        min-height: 190px;
+        padding: 24px 20px;
+        font-size: 0.92rem;
       }
 
       .input-hint {
@@ -1108,6 +1178,10 @@
       }
 
       .card {
+        grid-template-columns: 1fr;
+      }
+
+      .export-preview {
         grid-template-columns: 1fr;
       }
 
@@ -1151,7 +1225,7 @@
           <div class="console-head">
             <div class="console-title-wrap">
               <h2 class="console-title">Import Elements</h2>
-              <label for="sourceInput">Paste media URLs, YouTube handles,<br>channel IDs, or video IDs</label>
+              <label for="sourceInput">Paste media URLs, YouTube handles, channel IDs, or video IDs</label>
             </div>
             <div class="mode-toggle" role="group" aria-label="Input mode">
               <button type="button" id="singleModeBtn" class="active" aria-pressed="true">Single</button>
@@ -1159,7 +1233,7 @@
             </div>
           </div>
           <div class="input-frame">
-            <textarea id="sourceInput"
+            <textarea id="sourceInput" wrap="off"
               placeholder="https://youtu.be/...&#10;@channel&#10;https://www.tiktok.com/..."></textarea>
             <span class="input-hint">One item per line</span>
           </div>
@@ -1176,7 +1250,8 @@
           </div>
           <div class="panel-body">
             <div class="params-empty empty" id="paramsEmpty"><strong>Waiting for media.</strong>Analyze a link first, then ReClip will reveal only the parameters that apply.</div>
-            <div class="params-content">
+            <div class="params-content" inert aria-hidden="true">
+              <div class="export-preview hidden" id="exportPreview"></div>
               <div class="option-grid">
               <div class="field">
                 <label for="outputFormat">Output</label>
@@ -1372,6 +1447,7 @@
       $('batchModeBtn').classList.toggle('active', mode === 'batch');
       $('singleModeBtn').setAttribute('aria-pressed', String(mode !== 'batch'));
       $('batchModeBtn').setAttribute('aria-pressed', String(mode === 'batch'));
+      $('sourceInput').setAttribute('wrap', mode === 'batch' ? 'soft' : 'off');
       $('sourceInput').placeholder = mode === 'batch'
         ? 'https://youtu.be/...\n@channel\nhttps://www.tiktok.com/...'
         : 'https://www.youtube.com/watch?...';
@@ -1413,6 +1489,14 @@
         root.appendChild(spark);
       }
       setTimeout(() => { root.innerHTML = ''; }, 900);
+    }
+
+    function setParamsReady(ready) {
+      const panel = $('paramsPanel');
+      const content = document.querySelector('.params-content');
+      panel.classList.toggle('ready', ready);
+      content.inert = !ready;
+      content.setAttribute('aria-hidden', String(!ready));
     }
 
     async function loadCapabilities() {
@@ -1461,7 +1545,7 @@
         toast(data.kind === 'channel' ? 'Channel mode unlocked.' : 'Input analyzed. Choose the export shape.');
       } catch (err) {
         state.resolved = null;
-        $('paramsPanel').classList.remove('ready');
+        setParamsReady(false);
         $('cards').innerHTML = emptyState('Signal lost', friendlyError(err.message), 'error shake');
         $('summary').textContent = 'Analyze failed.';
       } finally {
@@ -1488,15 +1572,43 @@
       $('startBtn').disabled = false;
       $('startBtn').textContent = data.kind === 'channel' ? 'Start Channel Export' : 'Start Export';
       $('cards').innerHTML = (data.items || []).map(renderCard).join('');
-      $('paramsPanel').classList.add('ready');
+      setParamsReady(true);
       if (data.kind === 'video' && data.items?.[0]?.duration) {
         $('clipEnd').value = fmtDur(data.items[0].duration);
       } else if (data.kind !== 'video') {
         $('clipStart').value = '';
         $('clipEnd').value = '';
       }
+      renderExportPreview();
       renderFormatPicker();
       syncOptions();
+    }
+
+    function mediaMeta(item, includeDate = true) {
+      return `${esc(item.uploader || '')}${item.duration ? ' · ' + fmtDur(item.duration) : ''}${includeDate && item.upload_date ? ' · ' + esc(item.upload_date) : ''}`;
+    }
+
+    function renderExportPreview() {
+      const preview = $('exportPreview');
+      const items = state.resolved?.items || [];
+      const item = items.length === 1 && state.resolved?.kind === 'video' ? items[0] : null;
+      if (!item) {
+        preview.classList.add('hidden');
+        preview.innerHTML = '';
+        return;
+      }
+
+      const thumb = item.thumbnail
+        ? `<img src="${esc(item.thumbnail)}" alt="">`
+        : `<span>${item.id ? esc(item.id.slice(0, 6)) : 'media'}</span>`;
+      preview.innerHTML = `
+        <div class="thumb">${thumb}</div>
+        <div>
+          <h3>${esc(item.title || 'Untitled')}</h3>
+          <div class="meta">${mediaMeta(item)}</div>
+        </div>
+      `;
+      preview.classList.remove('hidden');
     }
 
     function renderCard(item) {
@@ -1508,7 +1620,7 @@
           <div class="thumb">${thumb}</div>
           <div>
             <h3>${esc(item.title || 'Untitled')}</h3>
-            <div class="meta">${esc(item.uploader || '')}${item.duration ? ' · ' + fmtDur(item.duration) : ''}${item.upload_date ? ' · ' + esc(item.upload_date) : ''}</div>
+            <div class="meta">${mediaMeta(item)}</div>
             <div class="card-actions">
               <button class="mini hot export-one" data-export-url="${esc(item.url)}">Export This</button>
             </div>
@@ -1756,9 +1868,11 @@
       $('cards').innerHTML = emptyState('Desk is clean', 'Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.');
       $('summary').textContent = 'No input analyzed yet.';
       $('modeNote').textContent = 'Analyze input to unlock smart options.';
-      $('paramsPanel').classList.remove('ready');
+      setParamsReady(false);
       $('clipStart').value = '';
       $('clipEnd').value = '';
+      $('exportPreview').classList.add('hidden');
+      $('exportPreview').innerHTML = '';
       $('formatPickerRows').innerHTML = '';
       $('jobStatus').classList.add('hidden');
       $('jobStatus').classList.remove('running');
