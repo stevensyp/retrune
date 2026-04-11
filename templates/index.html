@@ -268,6 +268,11 @@
       margin-bottom: 18px;
     }
 
+    .console-title-wrap {
+      display: grid;
+      gap: 8px;
+    }
+
     .console-title {
       margin: 0;
       font-family: 'Instrument Serif', serif;
@@ -277,12 +282,54 @@
       letter-spacing: -0.025em;
     }
 
+    .console-note,
     .console-head label {
       margin: 0;
       color: var(--muted);
       font-size: 0.72rem;
       line-height: 1.5;
       letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .mode-toggle {
+      display: inline-flex;
+      justify-self: end;
+      gap: 6px;
+      padding: 5px;
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 250, 240, 0.5);
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    .mode-toggle button {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: background 0.18s, color 0.18s, transform 0.18s;
+    }
+
+    .mode-toggle button.active {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .mode-toggle button:active {
+      transform: translateY(1px);
+    }
+
+    .console.mode-batch .mode-toggle {
+      border-color: rgba(234, 95, 36, 0.34);
+      box-shadow: 0 0 0 4px rgba(234, 95, 36, 0.08);
+    }
+
+    .console-head label {
       text-align: right;
     }
 
@@ -328,6 +375,14 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
       pointer-events: none;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.18s, transform 0.18s;
+    }
+
+    .console.mode-batch .input-hint {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     textarea:focus,
@@ -366,6 +421,101 @@
     .console-actions .btn.ghost {
       flex: 0 0 112px;
       background: rgba(255, 250, 240, 0.42);
+    }
+
+    .params-panel {
+      transition: opacity 0.24s, filter 0.24s, transform 0.24s;
+    }
+
+    .params-panel:not(.ready) {
+      opacity: 0.58;
+    }
+
+    .params-content,
+    .params-empty {
+      overflow: hidden;
+      transition: opacity 0.22s, max-height 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s;
+    }
+
+    .params-content {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+    }
+
+    .params-panel.ready .params-content {
+      max-height: 900px;
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .params-panel.ready .params-empty {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+    }
+
+    .params-empty {
+      max-height: 160px;
+    }
+
+    .field.span-2,
+    .clip-range,
+    .format-picker,
+    .assembly-warning {
+      grid-column: 1 / -1;
+    }
+
+    .clip-range {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .format-picker {
+      display: grid;
+      gap: 10px;
+    }
+
+    .format-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(120px, auto);
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1.5px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.26);
+      transition: border-color 0.18s, background 0.18s;
+    }
+
+    .format-row-title {
+      min-width: 0;
+      color: var(--ink);
+      font-size: 0.78rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .assembly-warning {
+      padding: 11px 12px;
+      border: 1.5px solid rgba(34, 95, 122, 0.22);
+      border-radius: 14px;
+      background: rgba(34, 95, 122, 0.06);
+      color: var(--blue);
+      font-size: 0.72rem;
+      line-height: 1.55;
+      transition: opacity 0.2s, transform 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+    .assembly-warning.danger {
+      border-color: rgba(184, 63, 55, 0.34);
+      background: rgba(184, 63, 55, 0.08);
+      color: var(--red);
     }
 
     .btn {
@@ -920,6 +1070,10 @@
         margin-bottom: 18px;
       }
 
+      .mode-toggle {
+        justify-self: start;
+      }
+
       .console-head label {
         text-align: left;
       }
@@ -934,6 +1088,11 @@
         position: static;
         display: block;
         margin: 10px 0 0;
+      }
+
+      .clip-range,
+      .format-row {
+        grid-template-columns: 1fr;
       }
 
       .console-actions .btn.ghost {
@@ -988,10 +1147,16 @@
 
     <section class="layout-board">
       <section class="main-stage">
-        <div class="console">
+        <div class="console mode-single" id="importCard">
           <div class="console-head">
-            <h2 class="console-title">Import Elements</h2>
-            <label for="sourceInput">Paste media URLs, YouTube handles,<br>channel IDs, or video IDs</label>
+            <div class="console-title-wrap">
+              <h2 class="console-title">Import Elements</h2>
+              <label for="sourceInput">Paste media URLs, YouTube handles,<br>channel IDs, or video IDs</label>
+            </div>
+            <div class="mode-toggle" role="group" aria-label="Input mode">
+              <button type="button" id="singleModeBtn" class="active" aria-pressed="true">Single</button>
+              <button type="button" id="batchModeBtn" aria-pressed="false">Batch</button>
+            </div>
           </div>
           <div class="input-frame">
             <textarea id="sourceInput"
@@ -1004,13 +1169,15 @@
           </div>
         </div>
 
-        <div class="panel">
+        <div class="panel params-panel" id="paramsPanel">
           <div class="panel-head">
-            <h2 class="panel-title">Export Shape</h2>
+            <h2 class="panel-title">Export Parameters</h2>
             <div class="panel-note" id="modeNote">Analyze input to unlock smart options.</div>
           </div>
           <div class="panel-body">
-            <div class="option-grid">
+            <div class="params-empty empty" id="paramsEmpty"><strong>Waiting for media.</strong>Analyze a link first, then ReClip will reveal only the parameters that apply.</div>
+            <div class="params-content">
+              <div class="option-grid">
               <div class="field">
                 <label for="outputFormat">Output</label>
                 <select id="outputFormat">
@@ -1019,13 +1186,17 @@
                   <option value="text">Transcript</option>
                 </select>
               </div>
-              <div class="field">
+              <div class="field" id="qualityField">
                 <label for="quality">Quality</label>
                 <select id="quality">
                   <option value="optimized">Optimized</option>
                   <option value="highest">Highest</option>
                   <option value="compressed">Compressed</option>
                 </select>
+              </div>
+              <div class="format-picker hidden" id="formatPickerField">
+                <label>Video Quality</label>
+                <div id="formatPickerRows"></div>
               </div>
               <div class="field" id="textExtField">
                 <label for="textExtension">Transcript Format</label>
@@ -1060,19 +1231,21 @@
                   <option value="popularity">Popularity</option>
                 </select>
               </div>
-              <div class="field video-only">
-                <label for="clipStart">Clip From</label>
-                <input id="clipStart" type="text" placeholder="00:00">
-              </div>
-              <div class="field video-only">
-                <label for="clipEnd">Clip To</label>
-                <input id="clipEnd" type="text" placeholder="blank = end">
+              <div class="clip-range video-only">
+                <div class="field">
+                  <label for="clipStart">Clip From</label>
+                  <input id="clipStart" type="text" placeholder="00:00">
+                </div>
+                <div class="field">
+                  <label for="clipEnd">Clip To</label>
+                  <input id="clipEnd" type="text" placeholder="duration">
+                </div>
               </div>
               <label class="toggle transcript-option">
                 <input id="transcription" type="checkbox">
                 Include transcript with audio/video
               </label>
-              <div class="field transcript-controls">
+              <div class="field transcript-controls attached-transcript-control">
                 <label for="transcriptionFormat">Attached Transcript</label>
                 <select id="transcriptionFormat">
                   <option value="txt">TXT</option>
@@ -1080,14 +1253,15 @@
                   <option value="json">JSON</option>
                 </select>
               </div>
-              <div class="field transcript-controls">
+              <div class="field transcript-source-control">
                 <label for="transcriptFallback">Transcript Fallback</label>
                 <select id="transcriptFallback">
                   <option value="auto_captions">Captions before AssemblyAI</option>
                   <option value="assemblyai_transcripts">AssemblyAI first</option>
                 </select>
               </div>
-              <label class="toggle transcript-controls">
+              <div class="assembly-warning hidden" id="assemblyWarning"></div>
+              <label class="toggle transcript-source-control">
                 <input id="geminiCleanup" type="checkbox">
                 Clean auto captions with Gemini
               </label>
@@ -1100,8 +1274,9 @@
                 Include channel metadata
               </label>
             </div>
-            <div class="actions">
-              <button class="btn primary" id="startBtn" disabled>Start Export</button>
+              <div class="actions">
+                <button class="btn primary" id="startBtn" disabled>Start Export</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1140,6 +1315,8 @@
       capabilities: { assemblyai: false, gemini: false },
       selectedFormats: {},
       lastCelebratedJob: null,
+      inputMode: 'single',
+      lastRenderedItemsSignature: '',
     };
 
     const $ = id => document.getElementById(id);
@@ -1162,6 +1339,42 @@
       const m = Math.floor((seconds % 3600) / 60);
       const s = Math.floor(seconds % 60).toString().padStart(2, '0');
       return h ? `${h}:${m.toString().padStart(2, '0')}:${s}` : `${m}:${s}`;
+    }
+
+    function splitInputLines(value) {
+      return (value || '')
+        .split(/\n+/)
+        .map(line => line.trim())
+        .filter(Boolean);
+    }
+
+    function currentInputValue() {
+      const raw = $('sourceInput').value.trim();
+      if (state.inputMode === 'batch') return raw;
+      return splitInputLines(raw)[0] || raw;
+    }
+
+    function totalDurationSeconds() {
+      return (state.resolved?.items || []).reduce((sum, item) => sum + (Number(item.duration) || 0), 0);
+    }
+
+    function transcriptCaptionLabel() {
+      const items = state.resolved?.items || [];
+      if (items.some(item => item.has_manual_subtitles)) return 'Provided captions';
+      return 'Auto-generated captions';
+    }
+
+    function setInputMode(mode) {
+      state.inputMode = mode;
+      $('importCard').classList.toggle('mode-batch', mode === 'batch');
+      $('importCard').classList.toggle('mode-single', mode !== 'batch');
+      $('singleModeBtn').classList.toggle('active', mode !== 'batch');
+      $('batchModeBtn').classList.toggle('active', mode === 'batch');
+      $('singleModeBtn').setAttribute('aria-pressed', String(mode !== 'batch'));
+      $('batchModeBtn').setAttribute('aria-pressed', String(mode === 'batch'));
+      $('sourceInput').placeholder = mode === 'batch'
+        ? 'https://youtu.be/...\n@channel\nhttps://www.tiktok.com/...'
+        : 'https://www.youtube.com/watch?...';
     }
 
     function friendlyError(err) {
@@ -1213,7 +1426,7 @@
     }
 
     async function analyze() {
-      const input = $('sourceInput').value.trim();
+      const input = currentInputValue();
       if (!input) {
         toast('Paste a link, handle, channel ID, or video ID first.');
         $('sourceInput').focus();
@@ -1228,6 +1441,7 @@
       $('jobStatus').classList.remove('running');
       state.job = null;
       state.lastCelebratedJob = null;
+      state.lastRenderedItemsSignature = '';
       clearInterval(state.poll);
 
       try {
@@ -1247,6 +1461,7 @@
         toast(data.kind === 'channel' ? 'Channel mode unlocked.' : 'Input analyzed. Choose the export shape.');
       } catch (err) {
         state.resolved = null;
+        $('paramsPanel').classList.remove('ready');
         $('cards').innerHTML = emptyState('Signal lost', friendlyError(err.message), 'error shake');
         $('summary').textContent = 'Analyze failed.';
       } finally {
@@ -1273,6 +1488,14 @@
       $('startBtn').disabled = false;
       $('startBtn').textContent = data.kind === 'channel' ? 'Start Channel Export' : 'Start Export';
       $('cards').innerHTML = (data.items || []).map(renderCard).join('');
+      $('paramsPanel').classList.add('ready');
+      if (data.kind === 'video' && data.items?.[0]?.duration) {
+        $('clipEnd').value = fmtDur(data.items[0].duration);
+      } else if (data.kind !== 'video') {
+        $('clipStart').value = '';
+        $('clipEnd').value = '';
+      }
+      renderFormatPicker();
       syncOptions();
     }
 
@@ -1280,9 +1503,6 @@
       const thumb = item.thumbnail
         ? `<img src="${esc(item.thumbnail)}" alt="">`
         : `<span>${item.id ? esc(item.id.slice(0, 6)) : 'media'}</span>`;
-      const formats = item.formats && item.formats.length > 1
-        ? `<select class="quality-select" onchange="state.selectedFormats['${esc(item.id)}']=this.value">${item.formats.map(f => `<option value="${esc(f.id)}">${esc(f.label)}</option>`).join('')}</select>`
-        : '';
       return `
         <article class="card" id="item-${esc(item.id)}">
           <div class="thumb">${thumb}</div>
@@ -1290,12 +1510,69 @@
             <h3>${esc(item.title || 'Untitled')}</h3>
             <div class="meta">${esc(item.uploader || '')}${item.duration ? ' · ' + fmtDur(item.duration) : ''}${item.upload_date ? ' · ' + esc(item.upload_date) : ''}</div>
             <div class="card-actions">
-              ${formats}
               <button class="mini hot export-one" data-export-url="${esc(item.url)}">Export This</button>
             </div>
           </div>
         </article>
       `;
+    }
+
+    function renderFormatPicker() {
+      const rows = $('formatPickerRows');
+      const items = state.resolved?.items || [];
+      const rowsHtml = items
+        .filter(item => item.formats && item.formats.length)
+        .map(item => {
+          if (!state.selectedFormats[item.id]) state.selectedFormats[item.id] = item.formats[0].id;
+          return `
+            <div class="format-row">
+              <div class="format-row-title">${esc(item.title || item.id || 'Media')}</div>
+              <select class="quality-select format-select" data-item-id="${esc(item.id)}">
+                ${item.formats.map(f => `<option value="${esc(f.id)}" ${state.selectedFormats[item.id] === f.id ? 'selected' : ''}>${esc(f.label)}</option>`).join('')}
+              </select>
+            </div>
+          `;
+        })
+        .join('');
+      rows.innerHTML = rowsHtml || '<div class="meta">Video quality is selected automatically for this source.</div>';
+    }
+
+    function updateTranscriptFallbackOptions() {
+      const label = transcriptCaptionLabel();
+      const fallback = $('transcriptFallback');
+      const previous = fallback.value;
+      fallback.innerHTML = `
+        <option value="auto_captions">${esc(label)}</option>
+        <option value="assemblyai_transcripts">AssemblyAI captions</option>
+      `;
+      fallback.value = previous === 'assemblyai_transcripts' ? previous : 'auto_captions';
+    }
+
+    function updateAssemblyWarning() {
+      const warning = $('assemblyWarning');
+      const output = $('outputFormat').value;
+      const usesTranscript = state.resolved && (output === 'text' || (output !== 'text' && $('transcription').checked));
+      const usesAssembly = usesTranscript && $('transcriptFallback').value === 'assemblyai_transcripts';
+      if (!usesAssembly) {
+        warning.classList.add('hidden');
+        warning.classList.remove('danger');
+        warning.textContent = '';
+        return;
+      }
+
+      const hours = totalDurationSeconds() / 3600;
+      const channelFlow = state.resolved?.kind === 'channel';
+      const multiFlow = (state.resolved?.items || []).length > 1;
+      const danger = channelFlow || (multiFlow && hours > 2);
+      warning.classList.toggle('danger', danger);
+      warning.classList.remove('hidden');
+      if (channelFlow) {
+        warning.textContent = 'AssemblyAI on a channel export can take significantly longer and may consume more quota.';
+      } else if (hours > 2) {
+        warning.textContent = `AssemblyAI is selected for about ${hours.toFixed(1)} hours of media. Expect a longer run.`;
+      } else {
+        warning.textContent = 'AssemblyAI usually takes longer because audio must be prepared, uploaded, and transcribed.';
+      }
     }
 
     function syncOptions() {
@@ -1308,25 +1585,32 @@
       }
       const channelFlow = kind === 'channel';
       const videoFlow = kind === 'video';
-      const transcriptRelevant = youtubeFlow && (output === 'text' || $('transcription').checked);
+      const attachedTranscriptRelevant = youtubeFlow && output !== 'text' && $('transcription').checked;
+      const transcriptSourceRelevant = youtubeFlow && (output === 'text' || attachedTranscriptRelevant);
+      const hasVideoFormats = (state.resolved?.items || []).some(item => item.formats && item.formats.length);
 
       for (const el of document.querySelectorAll('.channel-only')) el.classList.toggle('hidden', !channelFlow);
       for (const el of document.querySelectorAll('.video-only')) el.classList.toggle('hidden', !videoFlow);
       for (const el of document.querySelectorAll('.transcript-option')) el.classList.toggle('hidden', !youtubeFlow || output === 'text');
-      for (const el of document.querySelectorAll('.transcript-controls')) el.classList.toggle('hidden', !transcriptRelevant);
+      for (const el of document.querySelectorAll('.attached-transcript-control')) el.classList.toggle('hidden', !attachedTranscriptRelevant);
+      for (const el of document.querySelectorAll('.transcript-source-control')) el.classList.toggle('hidden', !transcriptSourceRelevant);
 
       $('textExtField').classList.toggle('hidden', output !== 'text');
       $('audioExtField').classList.toggle('hidden', output !== 'audio');
       $('videoExtField').classList.toggle('hidden', output !== 'video');
-      $('quality').disabled = output === 'text';
+      $('qualityField').classList.toggle('hidden', output !== 'audio');
+      $('formatPickerField').classList.toggle('hidden', output !== 'video' || !hasVideoFormats);
+      $('quality').disabled = output !== 'audio';
       $('geminiCleanup').disabled = !state.capabilities.gemini;
+      updateTranscriptFallbackOptions();
+      updateAssemblyWarning();
 
     }
 
     function buildConfig(overrideInput) {
       const output = $('outputFormat').value;
       return {
-        input: overrideInput || $('sourceInput').value.trim(),
+        input: overrideInput || currentInputValue(),
         mode: state.resolved?.kind === 'bulk' ? 'quick' : 'export',
         output_format: output,
         quality: $('quality').value,
@@ -1349,6 +1633,17 @@
 
     async function startJob(overrideInput) {
       if (!state.resolved && !overrideInput) return;
+      const output = $('outputFormat').value;
+      const usesAssembly = !overrideInput
+        && state.resolved
+        && (output === 'text' || (output !== 'text' && $('transcription').checked))
+        && $('transcriptFallback').value === 'assemblyai_transcripts';
+      const hours = totalDurationSeconds() / 3600;
+      if (usesAssembly && hours > 10) {
+        toast('AssemblyAI exports over 10 hours are blocked. Reduce the batch or channel size first.');
+        updateAssemblyWarning();
+        return;
+      }
       $('startBtn').disabled = true;
       $('startBtn').textContent = 'Starting...';
       $('jobStatus').classList.remove('hidden');
@@ -1417,6 +1712,18 @@
       $('jobArtifacts').innerHTML = artifactLinks.join('');
 
       if (job.items && job.items.length) {
+        const signature = JSON.stringify({
+          items: job.items.map(item => ({
+            id: item.id,
+            status: item.status,
+            error: item.error || '',
+            title: item.title || '',
+            duration: item.duration || 0,
+          })),
+          artifacts: (job.artifacts || []).map(a => `${a.id}:${a.item_id}:${a.kind}`).sort(),
+        });
+        if (signature === state.lastRenderedItemsSignature) return;
+        state.lastRenderedItemsSignature = signature;
         $('cards').innerHTML = job.items.map(item => {
           const related = (job.artifacts || []).filter(a => a.item_id === item.id);
           const statusClass = item.status === 'error' ? 'bad' : item.status === 'done' ? 'good' : '';
@@ -1444,10 +1751,15 @@
       state.job = null;
       state.selectedFormats = {};
       state.lastCelebratedJob = null;
+      state.lastRenderedItemsSignature = '';
       clearInterval(state.poll);
       $('cards').innerHTML = emptyState('Desk is clean', 'Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.');
       $('summary').textContent = 'No input analyzed yet.';
       $('modeNote').textContent = 'Analyze input to unlock smart options.';
+      $('paramsPanel').classList.remove('ready');
+      $('clipStart').value = '';
+      $('clipEnd').value = '';
+      $('formatPickerRows').innerHTML = '';
       $('jobStatus').classList.add('hidden');
       $('jobStatus').classList.remove('running');
       $('startBtn').disabled = true;
@@ -1458,6 +1770,8 @@
     document.querySelector('.brand h1').addEventListener('dblclick', () => {
       toast('Local-first, artifact-heavy, cloud-light. Good console.');
     });
+    $('singleModeBtn').addEventListener('click', () => setInputMode('single'));
+    $('batchModeBtn').addEventListener('click', () => setInputMode('batch'));
     $('analyzeBtn').addEventListener('click', analyze);
     $('clearBtn').addEventListener('click', clearAll);
     $('startBtn').addEventListener('click', () => startJob());
@@ -1465,8 +1779,13 @@
       const button = event.target.closest('.export-one');
       if (button) startJob(button.dataset.exportUrl);
     });
+    document.addEventListener('change', event => {
+      const select = event.target.closest('.format-select');
+      if (select) state.selectedFormats[select.dataset.itemId] = select.value;
+    });
     $('outputFormat').addEventListener('change', syncOptions);
     $('transcription').addEventListener('change', syncOptions);
+    $('transcriptFallback').addEventListener('change', syncOptions);
     $('sourceInput').addEventListener('keydown', event => {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -1474,6 +1793,7 @@
       }
     });
 
+    setInputMode('single');
     loadCapabilities();
     syncOptions();
   </script>
