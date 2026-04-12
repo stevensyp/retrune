@@ -443,6 +443,18 @@
       flex: 1 1 auto;
     }
 
+    .console-actions .btn.secondary {
+      flex: 1 1 auto;
+      border: 1.5px solid rgba(234, 95, 36, 0.52);
+      background: rgba(255, 250, 240, 0.42);
+      color: var(--accent-dark);
+    }
+
+    .console-actions .btn.secondary:hover {
+      background: rgba(234, 95, 36, 0.08);
+      box-shadow: 0 10px 24px rgba(234, 95, 36, 0.12);
+    }
+
     .console-actions .btn.ghost {
       flex: 0 0 112px;
       background: rgba(255, 250, 240, 0.42);
@@ -1238,7 +1250,7 @@
             <span class="input-hint">One item per line</span>
           </div>
           <div class="actions console-actions">
-            <button class="btn primary" id="analyzeBtn">Analyze Input</button>
+            <button class="btn secondary" id="analyzeBtn">Analyze Input</button>
             <button class="btn ghost" id="clearBtn">Clear</button>
           </div>
         </div>
@@ -1392,6 +1404,9 @@
       lastCelebratedJob: null,
       inputMode: 'single',
       lastRenderedItemsSignature: '',
+      analyzeTimer: null,
+      analyzeController: null,
+      analyzeGeneration: 0,
     };
 
     const $ = id => document.getElementById(id);
@@ -1509,13 +1524,43 @@
       syncOptions();
     }
 
-    async function analyze() {
+    function cancelPendingAnalyze() {
+      clearTimeout(state.analyzeTimer);
+      state.analyzeTimer = null;
+      if (state.analyzeController) {
+        state.analyzeGeneration += 1;
+        state.analyzeController.abort();
+        state.analyzeController = null;
+      }
+    }
+
+    function scheduleAnalyze(delay = 600) {
+      clearTimeout(state.analyzeTimer);
+      if (state.analyzeController) {
+        state.analyzeGeneration += 1;
+        state.analyzeController.abort();
+        state.analyzeController = null;
+      }
+      if (!currentInputValue()) return;
+      state.analyzeTimer = setTimeout(() => {
+        state.analyzeTimer = null;
+        analyze({ silentEmpty: true });
+      }, delay);
+    }
+
+    async function analyze(options = {}) {
+      clearTimeout(state.analyzeTimer);
+      state.analyzeTimer = null;
       const input = currentInputValue();
       if (!input) {
-        toast('Paste a link, handle, channel ID, or video ID first.');
+        if (!options.silentEmpty) toast('Paste a link, handle, channel ID, or video ID first.');
         $('sourceInput').focus();
         return;
       }
+      if (state.analyzeController) state.analyzeController.abort();
+      const generation = ++state.analyzeGeneration;
+      const controller = new AbortController();
+      state.analyzeController = controller;
       const line = loadingLines[Math.floor(Math.random() * loadingLines.length)];
       document.querySelector('.console').classList.add('listening');
       $('analyzeBtn').disabled = true;
@@ -1533,8 +1578,10 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ input }),
+          signal: controller.signal,
         });
         const data = await res.json();
+        if (generation !== state.analyzeGeneration) return;
         if (!res.ok || data.error) throw new Error(data.error || 'Could not analyze input');
         state.resolved = data;
         state.selectedFormats = {};
@@ -1544,15 +1591,19 @@
         renderResolved();
         toast(data.kind === 'channel' ? 'Channel mode unlocked.' : 'Input analyzed. Choose the export shape.');
       } catch (err) {
+        if (err.name === 'AbortError' || generation !== state.analyzeGeneration) return;
         state.resolved = null;
         setParamsReady(false);
         $('cards').innerHTML = emptyState('Signal lost', friendlyError(err.message), 'error shake');
         $('summary').textContent = 'Analyze failed.';
       } finally {
-        document.querySelector('.console').classList.remove('listening');
-        $('analyzeBtn').disabled = false;
-        $('analyzeBtn').textContent = 'Analyze Input';
-        syncOptions();
+        if (generation === state.analyzeGeneration) {
+          state.analyzeController = null;
+          document.querySelector('.console').classList.remove('listening');
+          $('analyzeBtn').disabled = false;
+          $('analyzeBtn').textContent = 'Analyze Input';
+          syncOptions();
+        }
       }
     }
 
@@ -1858,6 +1909,7 @@
     }
 
     function clearAll() {
+      cancelPendingAnalyze();
       $('sourceInput').value = '';
       state.resolved = null;
       state.job = null;
@@ -1900,10 +1952,12 @@
     $('outputFormat').addEventListener('change', syncOptions);
     $('transcription').addEventListener('change', syncOptions);
     $('transcriptFallback').addEventListener('change', syncOptions);
+    $('sourceInput').addEventListener('paste', () => scheduleAnalyze(600));
+    $('sourceInput').addEventListener('input', () => scheduleAnalyze(600));
     $('sourceInput').addEventListener('keydown', event => {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
-        analyze();
+        analyze({ immediate: true });
       }
     });
 
