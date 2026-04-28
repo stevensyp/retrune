@@ -36,11 +36,18 @@ brew install yt-dlp ffmpeg
 Optional server-side environment variables:
 
 ```bash
+export RECLIP_PASSWORD=...
+export RECLIP_AUTH_REQUIRED=1
+export SECRET_KEY=...
+export RECLIP_COOKIE_SECURE=1
+export RECLIP_SESSION_HOURS=720
 export ASSEMBLYAI_API_KEY=...
 export GOOGLE_API_FREE=...
 export YTDLP_BIN=yt-dlp
 export FFMPEG_BIN=ffmpeg
 ```
+
+`RECLIP_PASSWORD` enables the private login page. Use deployment secrets for the value; do not commit it. `RECLIP_PASSWORD_SHA256` can be used instead when the deployment platform should only receive a password digest. `RECLIP_AUTH_REQUIRED=1` makes public deployments fail closed unless a password is configured, and `SECRET_KEY` keeps Flask auth sessions stable across restarts. Use `RECLIP_COOKIE_SECURE=1` only on HTTPS deployments. `RECLIP_SESSION_HOURS` controls how long a browser stays signed in after a successful login.
 
 ### Manual Local Setup
 
@@ -199,6 +206,7 @@ These are lightweight checks when you want confidence without adding test infras
 - Preserve the simple request flow between the single template, Flask API, and reusable Python export engine.
 - Treat external command execution as the main failure surface and handle errors clearly.
 - Keep optional AI integrations server-side; never collect API keys in the browser.
+- Keep ReClip auth credentials server-side; never hard-code or commit the login password.
 
 ### Review Checklist
 

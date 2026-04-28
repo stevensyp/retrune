@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReClip</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #171717;
+      --muted: #62615f;
+      --line: #d8d4ce;
+      --paper: #f7f5f0;
+      --panel: #ffffff;
+      --accent: #1b7f79;
+      --danger: #9f2424;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(100%, 380px);
+      display: grid;
+      gap: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      line-height: 1;
+      font-weight: 700;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 18px 45px rgba(22, 22, 22, 0.08);
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font: inherit;
+    }
+
+    input:focus {
+      outline: 2px solid rgba(27, 127, 121, 0.24);
+      border-color: var(--accent);
+    }
+
+    button {
+      min-height: 46px;
+      border: 0;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .error {
+      padding: 10px 12px;
+      border: 1px solid rgba(159, 36, 36, 0.25);
+      border-radius: 6px;
+      background: rgba(159, 36, 36, 0.08);
+      color: var(--danger);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>ReClip</h1>
+      <p>Private access</p>
+    </header>
+
+    <form method="post" action="/auth/login" autocomplete="off">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      {% if error %}
+      <div class="error" role="alert">{{ error }}</div>
+      {% endif %}
+      <label>
+        Password
+        <input name="password" type="password" autocomplete="current-password" required autofocus {% if locked_seconds > 0 %}disabled{% endif %}>
+      </label>
+      <button type="submit" {% if locked_seconds > 0 %}disabled{% endif %}>Enter</button>
+    </form>
+  </main>
+</body>
+</html>

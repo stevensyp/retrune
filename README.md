@@ -73,6 +73,12 @@ YouTube, TikTok, Instagram, Twitter/X, Reddit, Facebook, Vimeo, Twitch, Dailymot
 
 Optional server-side environment variables:
 
+- `RECLIP_PASSWORD` enables the private login page with a server-side password
+- `RECLIP_PASSWORD_SHA256` enables the same login using a SHA-256 password digest instead of a raw password
+- `RECLIP_AUTH_REQUIRED=1` makes production fail closed when no ReClip password is configured
+- `SECRET_KEY` signs Flask sessions and is required when `RECLIP_AUTH_REQUIRED=1`
+- `RECLIP_COOKIE_SECURE=1` marks auth cookies as HTTPS-only for production deployments
+- `RECLIP_SESSION_HOURS` controls how long a browser stays signed in, defaulting to `720`
 - `ASSEMBLYAI_API_KEY` enables transcript fallback beyond YouTube captions
 - `GOOGLE_API_FREE` enables Gemini cleanup for YouTube auto captions
 - `YTDLP_BIN` overrides the `yt-dlp` executable

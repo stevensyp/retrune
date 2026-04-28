@@ -1,7 +1,11 @@
 import os
 import hashlib
+import hmac
+import secrets
+import time
+from datetime import timedelta
 
-from flask import Flask, jsonify, render_template, request, send_file
+from flask import Flask, jsonify, redirect, render_template, request, send_file, session, url_for
 
 from export_engine import JobStore, ResolveError, resolve_input
 
@@ -14,6 +18,124 @@ os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 job_store = JobStore(DOWNLOAD_DIR)
 DEV_RELOAD = os.environ.get("RECLIP_DEV_RELOAD") == "1"
+AUTH_PASSWORD = os.environ.get("RECLIP_PASSWORD", "")
+AUTH_PASSWORD_SHA256 = os.environ.get("RECLIP_PASSWORD_SHA256", "").lower()
+AUTH_REQUIRED = os.environ.get("RECLIP_AUTH_REQUIRED") == "1"
+AUTH_ENABLED = bool(AUTH_PASSWORD or AUTH_PASSWORD_SHA256)
+AUTH_FAILURES = {}
+SECRET_KEY = os.environ.get("SECRET_KEY")
+SESSION_HOURS = int(os.environ.get("RECLIP_SESSION_HOURS", "720"))
+
+if AUTH_REQUIRED and not AUTH_ENABLED:
+    raise RuntimeError("RECLIP_AUTH_REQUIRED=1 but no RECLIP_PASSWORD or RECLIP_PASSWORD_SHA256 is set")
+if AUTH_REQUIRED and not SECRET_KEY:
+    raise RuntimeError("RECLIP_AUTH_REQUIRED=1 but no SECRET_KEY is set")
+
+if AUTH_ENABLED:
+    app.secret_key = SECRET_KEY or secrets.token_hex(32)
+    app.config.update(
+        PERMANENT_SESSION_LIFETIME=timedelta(hours=SESSION_HOURS),
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=os.environ.get("RECLIP_COOKIE_SECURE") == "1",
+    )
+
+
+def _client_ip():
+    forwarded = request.headers.get("CF-Connecting-IP") or request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",", 1)[0].strip()
+    return request.remote_addr or "unknown"
+
+
+def _password_matches(password):
+    if AUTH_PASSWORD_SHA256:
+        digest = hashlib.sha256(password.encode("utf-8")).hexdigest()
+        return hmac.compare_digest(digest, AUTH_PASSWORD_SHA256)
+    return hmac.compare_digest(password, AUTH_PASSWORD)
+
+
+def _auth_failure_state(ip):
+    state = AUTH_FAILURES.get(ip)
+    if not state:
+        return {"count": 0, "locked_until": 0}
+    if state.get("locked_until", 0) <= time.time() and state.get("count", 0) > 40:
+        state = {"count": 0, "locked_until": 0}
+        AUTH_FAILURES[ip] = state
+    return state
+
+
+def _register_auth_failure(ip):
+    now = time.time()
+    state = _auth_failure_state(ip)
+    count = state.get("count", 0) + 1
+    locked_until = state.get("locked_until", 0)
+    if count >= 5:
+        lock_seconds = min(3600, 60 * (2 ** min(count - 5, 6)))
+        locked_until = now + lock_seconds
+    AUTH_FAILURES[ip] = {"count": count, "locked_until": locked_until}
+    return max(0, int(locked_until - now))
+
+
+def _clear_auth_failures(ip):
+    AUTH_FAILURES.pop(ip, None)
+
+
+def _auth_locked_seconds(ip):
+    state = _auth_failure_state(ip)
+    remaining = int(state.get("locked_until", 0) - time.time())
+    return max(0, remaining)
+
+
+@app.before_request
+def require_auth():
+    if not AUTH_ENABLED:
+        return None
+    if request.endpoint in {"login", "static"}:
+        return None
+    if session.get("authenticated"):
+        return None
+    if request.path.startswith("/api/"):
+        return jsonify({"error": "Authentication required"}), 401
+    return redirect(url_for("login"))
+
+
+@app.route("/auth/login", methods=["GET", "POST"])
+def login():
+    if not AUTH_ENABLED:
+        return redirect(url_for("index"))
+
+    ip = _client_ip()
+    locked_seconds = _auth_locked_seconds(ip)
+    error = ""
+
+    if request.method == "POST":
+        csrf_token = request.form.get("csrf_token", "")
+        expected_token = session.get("csrf_token", "")
+        if not expected_token or not hmac.compare_digest(csrf_token, expected_token):
+            error = "Session expired. Reload and try again."
+        elif locked_seconds > 0:
+            error = f"Too many attempts. Try again in {locked_seconds} seconds."
+        elif _password_matches(request.form.get("password", "")):
+            session.clear()
+            session.permanent = True
+            session["authenticated"] = True
+            _clear_auth_failures(ip)
+            return redirect(url_for("index"))
+        else:
+            locked_seconds = _register_auth_failure(ip)
+            error = "Password not accepted."
+            if locked_seconds > 0:
+                error = f"Too many attempts. Try again in {locked_seconds} seconds."
+
+    csrf_token = secrets.token_urlsafe(32)
+    session["csrf_token"] = csrf_token
+    return render_template(
+        "login.html",
+        csrf_token=csrf_token,
+        error=error,
+        locked_seconds=locked_seconds,
+    )
 
 
 def _dev_reload_version():
