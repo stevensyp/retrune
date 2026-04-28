@@ -1,4 +1,4 @@
-# ReClip / Retrune
+![ReClip Control](assets/readme-header.png)
 
 A self-hosted media export console for downloading videos, audio, transcripts, metadata, and ZIP bundles from YouTube and other sites supported by `yt-dlp`.
 

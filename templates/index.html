@@ -142,10 +142,7 @@
 
     .brand-left {
       display: grid;
-      grid-template-columns: max-content max-content;
-      column-gap: clamp(10px, 1.25vw, 20px);
-      row-gap: 8px;
-      align-items: end;
+      gap: 10px;
       min-width: 0;
     }
 
@@ -157,58 +154,12 @@
       min-width: 0;
     }
 
-    .kicker {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      grid-column: 2;
-      justify-self: start;
-      width: 330px;
+    .brand-logo {
+      display: block;
+      width: min(620px, 100%);
       max-width: 100%;
-      padding: 3px 8px 4px;
-      border: 0;
-      border-radius: 0;
-      color: var(--muted);
-      font-size: 0.68rem;
-      letter-spacing: 0.075em;
-      text-transform: uppercase;
-    }
-
-    .kicker::before {
-      content: '';
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: var(--accent);
-      box-shadow: 0 0 0 4px rgba(234, 95, 36, 0.11);
-      animation: live-dot 2.6s ease-in-out infinite;
-    }
-
-    .brand h1 {
-      margin: 0;
-      max-width: none;
-      font-family: 'Instrument Serif', serif;
-      font-size: clamp(4.5rem, 8.25vw, 8.4rem);
-      font-weight: 400;
-      line-height: 0.76;
-      letter-spacing: -0.07em;
-      white-space: nowrap;
-      display: contents;
-    }
-
-    .brand-title-clip,
-    .brand-title-control {
-      font-family: 'Instrument Serif', serif;
-      font-size: clamp(4.5rem, 8.25vw, 8.4rem);
-      font-weight: 400;
-      line-height: 0.76;
-      letter-spacing: -0.07em;
-      white-space: nowrap;
-    }
-
-    .brand h1 em {
-      color: var(--accent);
-      font-style: italic;
+      height: auto;
+      filter: drop-shadow(0 16px 28px rgba(62, 43, 18, 0.10));
     }
 
     .brand-copy {
@@ -1084,10 +1035,6 @@
         justify-items: start;
       }
 
-      .kicker {
-        justify-self: start;
-      }
-
       .brand-copy {
         margin-top: 18px;
         max-width: 72ch;
@@ -1120,9 +1067,8 @@
         padding: 24px;
       }
 
-      .brand-title-clip,
-      .brand-title-control {
-        font-size: clamp(3.2rem, 14vw, 4.4rem);
+      .brand-logo {
+        width: 100%;
       }
 
       .console {
@@ -1213,11 +1159,7 @@
   <main class="shell">
     <header class="brand">
       <div class="brand-left">
-        <h1 aria-label="ReClip Control">
-          <span class="brand-title-clip">Re<em>Clip</em></span>
-          <span class="brand-title-control">Control</span>
-        </h1>
-        <span class="kicker">One local console · Every export</span>
+        <img class="brand-logo" src="/assets/readme-header.png" alt="ReClip Control — One local console, every export">
       </div>
       <div class="brand-right">
         <p class="brand-copy">Paste a video from any platform, YouTube channel or handle, and get it turned into clean audios,
@@ -1948,7 +1890,7 @@
       syncOptions();
     }
 
-    document.querySelector('.brand h1').addEventListener('dblclick', () => {
+    document.querySelector('.brand-logo').addEventListener('dblclick', () => {
       toast('Local-first, artifact-heavy, cloud-light. Good console.');
     });
     $('singleModeBtn').addEventListener('click', () => setInputMode('single'));

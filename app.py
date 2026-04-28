@@ -5,7 +5,7 @@ import secrets
 import time
 from datetime import timedelta
 
-from flask import Flask, jsonify, redirect, render_template, request, send_file, session, url_for
+from flask import Flask, jsonify, redirect, render_template, request, send_file, send_from_directory, session, url_for
 
 from export_engine import JobStore, ResolveError, resolve_input
 
@@ -91,7 +91,7 @@ def _auth_locked_seconds(ip):
 def require_auth():
     if not AUTH_ENABLED:
         return None
-    if request.endpoint in {"login", "health", "static"}:
+    if request.endpoint in {"login", "health", "assets", "static"}:
         return None
     if session.get("authenticated"):
         return None
@@ -167,6 +167,11 @@ def _dev_reload_version():
 @app.route("/")
 def index():
     return render_template("index.html", dev_reload=DEV_RELOAD)
+
+
+@app.route("/assets/<path:filename>")
+def assets(filename):
+    return send_from_directory(os.path.join(ROOT_DIR, "assets"), filename)
 
 
 @app.route("/api/dev/reload-version")
