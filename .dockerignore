@@ -1,0 +1,12 @@
+.git
+.codex
+.wrangler
+__pycache__
+*.pyc
+.DS_Store
+.env
+.env.*
+venv
+downloads
+node_modules
+assets/*.mov

@@ -91,7 +91,7 @@ def _auth_locked_seconds(ip):
 def require_auth():
     if not AUTH_ENABLED:
         return None
-    if request.endpoint in {"login", "static"}:
+    if request.endpoint in {"login", "health", "static"}:
         return None
     if session.get("authenticated"):
         return None
@@ -136,6 +136,11 @@ def login():
         error=error,
         locked_seconds=locked_seconds,
     )
+
+
+@app.route("/health")
+def health():
+    return jsonify({"ok": True})
 
 
 def _dev_reload_version():

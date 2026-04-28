@@ -1,7 +1,9 @@
 venv/
+node_modules/
 downloads/
 __pycache__/
 *.pyc
+.wrangler/
 assets/*.mov
 .DS_Store
 .env

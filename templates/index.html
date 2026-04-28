@@ -1470,6 +1470,7 @@
 
     function friendlyError(err) {
       const text = err || 'Export failed';
+      if (text.includes('Authentication required')) return 'Password required. Reload and sign in.';
       if (text.includes('Unsupported URL')) return 'This URL is not supported';
       if (text.includes('Video unavailable')) return 'Video unavailable or private';
       if (text.includes('Private video')) return 'Private video';
@@ -1477,6 +1478,19 @@
       if (text.includes('timed out')) return 'Request timed out';
       if (text.includes('ASSEMBLYAI_API_KEY')) return 'AssemblyAI key missing on server';
       return text.length > 110 ? text.slice(0, 110) + '...' : text;
+    }
+
+    async function readJsonResponse(res, fallbackMessage) {
+      const text = await res.text();
+      if (!text.trim()) {
+        throw new Error(`${fallbackMessage} (${res.status || 'empty response'})`);
+      }
+      try {
+        return JSON.parse(text);
+      } catch {
+        const compact = text.replace(/\s+/g, ' ').trim();
+        throw new Error(compact || `${fallbackMessage} (${res.status})`);
+      }
     }
 
     function emptyState(title, body, extraClass = '') {
@@ -1517,7 +1531,7 @@
     async function loadCapabilities() {
       try {
         const res = await fetch('/api/capabilities');
-        state.capabilities = await res.json();
+        state.capabilities = await readJsonResponse(res, 'Could not load capabilities');
       } catch { }
       $('cap-aai').classList.toggle('on', !!state.capabilities.assemblyai);
       $('cap-gemini').classList.toggle('on', !!state.capabilities.gemini);
@@ -1580,7 +1594,7 @@
           body: JSON.stringify({ input }),
           signal: controller.signal,
         });
-        const data = await res.json();
+        const data = await readJsonResponse(res, 'Could not analyze input');
         if (generation !== state.analyzeGeneration) return;
         if (!res.ok || data.error) throw new Error(data.error || 'Could not analyze input');
         state.resolved = data;
@@ -1821,7 +1835,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(buildConfig(overrideInput)),
         });
-        const data = await res.json();
+        const data = await readJsonResponse(res, 'Could not start job');
         if (!res.ok || data.error) throw new Error(data.error || 'Could not start job');
         toast('Export queued. Artifacts will appear as they land.');
         pollJob(data.job_id);
@@ -1838,7 +1852,8 @@
       const tick = async () => {
         try {
           const res = await fetch(`/api/jobs/${jobId}`);
-          const job = await res.json();
+          const job = await readJsonResponse(res, 'Could not read job status');
+          if (!res.ok || job.error) throw new Error(job.error || 'Could not read job status');
           state.job = job;
           renderJob(job);
           if (['done', 'partial', 'error'].includes(job.status)) {
@@ -1857,7 +1872,7 @@
         } catch (err) {
           clearInterval(state.poll);
           $('jobStatus').classList.remove('running');
-          $('jobMessage').innerHTML = `<span class="error">Lost connection to server</span>`;
+          $('jobMessage').innerHTML = `<span class="error">${esc(friendlyError(err.message || 'Lost connection to server'))}</span>`;
         }
       };
       tick();

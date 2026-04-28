@@ -1,0 +1,37 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "retrune",
+  "main": "src/index.js",
+  "compatibility_date": "2026-04-28",
+  "compatibility_flags": ["nodejs_compat"],
+  "keep_vars": true,
+  "containers": [
+    {
+      "class_name": "RetruneContainer",
+      "image": "./Dockerfile",
+      "instance_type": "standard-1",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "RETRUNE_CONTAINER",
+        "class_name": "RetruneContainer"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["RetruneContainer"]
+    }
+  ],
+  "vars": {
+    "HOST": "0.0.0.0",
+    "PORT": "8899",
+    "RECLIP_AUTH_REQUIRED": "1",
+    "RECLIP_COOKIE_SECURE": "1",
+    "RECLIP_SESSION_HOURS": "720"
+  }
+}

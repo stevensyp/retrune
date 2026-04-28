@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "^0.0.28"
+  },
+  "devDependencies": {
+    "wrangler": "^4.85.0"
+  }
+}
