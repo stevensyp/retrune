@@ -112,16 +112,18 @@ def login():
     if request.method == "POST":
         csrf_token = request.form.get("csrf_token", "")
         expected_token = session.get("csrf_token", "")
-        if not expected_token or not hmac.compare_digest(csrf_token, expected_token):
-            error = "Session expired. Reload and try again."
-        elif locked_seconds > 0:
+        csrf_valid = expected_token and hmac.compare_digest(csrf_token, expected_token)
+        password_matches = _password_matches(request.form.get("password", ""))
+        if locked_seconds > 0:
             error = f"Too many attempts. Try again in {locked_seconds} seconds."
-        elif _password_matches(request.form.get("password", "")):
+        elif password_matches:
             session.clear()
             session.permanent = True
             session["authenticated"] = True
             _clear_auth_failures(ip)
             return redirect(url_for("index"))
+        elif not csrf_valid:
+            error = "Session expired. Try again."
         else:
             locked_seconds = _register_auth_failure(ip)
             error = "Password not accepted."
