@@ -1,6 +1,6 @@
 # ReClip
 
-A self-hosted, open-source video and audio downloader with a clean web UI. Paste links from YouTube, TikTok, Instagram, Twitter/X, and 1000+ other sites — download as MP4 or MP3.
+A self-hosted, open-source media export console with a clean web UI. Paste links from YouTube, TikTok, Instagram, Twitter/X, and 1000+ other sites — download quick MP4/MP3 files, or run richer YouTube video/channel exports with transcripts and metadata.
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -12,12 +12,20 @@ https://github.com/user-attachments/assets/419d3e50-c933-444b-8cab-a9724986ba05
 ## Features
 
 - Download videos from 1000+ supported sites (via [yt-dlp](https://github.com/yt-dlp/yt-dlp))
-- MP4 video or MP3 audio extraction
-- Quality/resolution picker
-- Bulk downloads — paste multiple URLs at once
+- MP4 video or MP3 audio extraction for quick downloads
+- YouTube channel, handle, video URL, and bare video ID detection
+- Transcript exports as TXT, Markdown, or JSON
+- Audio exports as MP3 or WAV
+- Video exports as MP4 or MKV
+- Optional single-video clipping
+- Optional video and channel metadata artifacts
+- Optional AssemblyAI transcript fallback when server credentials are configured
+- Optional Gemini cleanup for YouTube auto captions when server credentials are configured
+- Per-item quality/resolution picker
+- Bulk downloads and channel exports
 - Automatic URL deduplication
 - Clean, responsive UI — no frameworks, no build step
-- Single Python file backend (~150 lines)
+- Python service-layer backend with Flask routes
 
 ## Quick Start
 
@@ -30,6 +38,12 @@ cd reclip
 
 Open **http://localhost:8899**.
 
+For UI development with automatic server restart and browser refresh:
+
+```bash
+./reclip.sh --dev
+```
+
 Or with Docker:
 
 ```bash
@@ -38,11 +52,11 @@ docker build -t reclip . && docker run -p 8899:8899 reclip
 
 ## Usage
 
-1. Paste one or more video URLs into the input box
-2. Choose **MP4** (video) or **MP3** (audio)
-3. Click **Fetch** to load video info and thumbnails
-4. Select quality/resolution if available
-5. Click **Download** on individual videos, or **Download All**
+1. Paste one or more media URLs, a YouTube handle, a channel ID, or a video ID
+2. Click **Analyze Input** to detect the workflow and load preview cards
+3. Choose video, audio, or transcript export options
+4. Start a full export or export an individual preview card
+5. Download individual artifacts or the packaged ZIP when the job completes
 
 ## Supported Sites
 
@@ -52,10 +66,17 @@ YouTube, TikTok, Instagram, Twitter/X, Reddit, Facebook, Vimeo, Twitch, Dailymot
 
 ## Stack
 
-- **Backend:** Python + Flask (~150 lines)
+- **Backend:** Python + Flask service layer
 - **Frontend:** Vanilla HTML/CSS/JS (single file, no build step)
 - **Download engine:** [yt-dlp](https://github.com/yt-dlp/yt-dlp) + [ffmpeg](https://ffmpeg.org/)
 - **Dependencies:** 2 (Flask, yt-dlp)
+
+Optional server-side environment variables:
+
+- `ASSEMBLYAI_API_KEY` enables transcript fallback beyond YouTube captions
+- `GOOGLE_API_FREE` enables Gemini cleanup for YouTube auto captions
+- `YTDLP_BIN` overrides the `yt-dlp` executable
+- `FFMPEG_BIN` overrides the `ffmpeg` executable
 
 ## Engineering Notes
 

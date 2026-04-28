@@ -2,6 +2,11 @@
 set -e
 cd "$(dirname "$0")"
 
+DEV_MODE=0
+if [ "${1:-}" = "--dev" ]; then
+    DEV_MODE=1
+fi
+
 # Check prerequisites
 missing=""
 
@@ -43,7 +48,27 @@ fi
 PORT="${PORT:-8899}"
 export PORT
 
+if [ "$DEV_MODE" = "1" ]; then
+    export RECLIP_DEV_RELOAD=1
+
+    if command -v lsof &> /dev/null; then
+        existing_pids="$(lsof -ti tcp:"$PORT" -sTCP:LISTEN || true)"
+        if [ -n "$existing_pids" ]; then
+            echo "Stopping existing server on port $PORT..."
+            kill $existing_pids || true
+            sleep 0.4
+        fi
+    fi
+
+    if command -v open &> /dev/null; then
+        (sleep 1.2 && open "http://localhost:$PORT") &
+    fi
+fi
+
 echo ""
 echo "  ReClip is running at http://localhost:$PORT"
+if [ "$DEV_MODE" = "1" ]; then
+    echo "  Dev mode: Flask reload + browser auto-refresh enabled"
+fi
 echo ""
 python3 app.py

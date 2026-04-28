@@ -1,689 +1,1988 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ReClip — Free Media Downloader</title>
+  <title>ReClip — Media Export Console</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
+    rel="stylesheet">
   <style>
     :root {
-      --bg: #f4f1eb;
-      --fg: #3a3a38;
-      --accent: #e85d2a;
-      --accent-hover: #d04e1f;
-      --muted: #9c9889;
-      --card: #fff;
-      --card-border: #e2ded6;
-      --success: #2d8a4e;
-      --error: #c43d3d;
-      --radius: 14px;
-      --shimmer: linear-gradient(90deg, #ebe8e2 25%, #f0ede7 50%, #ebe8e2 75%);
+      --ink: #272722;
+      --paper: #f2eee5;
+      --panel: #fffaf0;
+      --panel-strong: #fff4dc;
+      --line: #d9ccb7;
+      --muted: #85796a;
+      --accent: #ea5f24;
+      --accent-dark: #bd4618;
+      --blue: #225f7a;
+      --green: #257447;
+      --red: #b83f37;
+      --shadow: 0 24px 80px rgba(62, 43, 18, 0.14);
+      --radius: 22px;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
-      font-family: 'DM Mono', monospace;
-      background: var(--bg);
-      color: var(--fg);
+      margin: 0;
       min-height: 100vh;
-      overflow-x: hidden;
+      color: var(--ink);
+      font-family: 'DM Mono', monospace;
+      background:
+        radial-gradient(circle at 9% 12%, rgba(234, 95, 36, 0.18), transparent 28rem),
+        radial-gradient(circle at 82% 4%, rgba(34, 95, 122, 0.14), transparent 30rem),
+        linear-gradient(135deg, #f8f2e6 0%, var(--paper) 45%, #ece1cf 100%);
     }
 
     body::after {
       content: '';
       position: fixed;
       inset: 0;
-      opacity: 0.03;
       pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-      background-size: 128px;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
     }
 
-    .page {
-      max-width: 620px;
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    ::selection {
+      background: rgba(234, 95, 36, 0.22);
+      color: var(--ink);
+    }
+
+    .shell {
+      width: min(1320px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 60px 24px 80px;
+      padding: 42px 0 72px;
+      animation: page-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .brand { margin-bottom: 48px; }
-    .brand h1 {
-      font-family: 'Instrument Serif', serif;
-      font-size: 4.2rem;
-      font-weight: 400;
-      letter-spacing: -0.03em;
-      line-height: 1;
-      color: var(--fg);
+    .layout-board {
+      display: grid;
+      grid-template-columns: minmax(420px, 1fr) minmax(340px, 0.78fr);
+      gap: 22px;
+      align-items: start;
     }
-    .brand h1 em { font-style: italic; color: var(--accent); }
-    .brand p {
-      margin-top: 10px;
-      font-size: 0.78rem;
+
+    .brand,
+    .console {
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 240, 0.78);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      padding: 24px 44px 18px;
+      min-height: 200px;
+      max-height: 240px;
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.74fr);
+      gap: clamp(24px, 4vw, 56px);
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .brand::before {
+      content: '';
+      position: absolute;
+      right: 26px;
+      top: 24px;
+      width: 520px;
+      height: 154px;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255, 250, 240, 0.18), rgba(255, 250, 240, 0.48));
+      opacity: 0.76;
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .brand:hover::before {
+      transform: translate(-10px, -8px) scale(1.04);
+    }
+
+    .brand::after {
+      content: '';
+      position: absolute;
+      right: -76px;
+      bottom: -168px;
+      width: 420px;
+      height: 420px;
+      border: 1.5px solid rgba(234, 95, 36, 0.24);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 42px rgba(234, 95, 36, 0.035);
+      pointer-events: none;
+    }
+
+    .brand-left,
+    .brand-right {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-left {
+      display: grid;
+      grid-template-columns: max-content max-content;
+      column-gap: clamp(10px, 1.25vw, 20px);
+      row-gap: 8px;
+      align-items: end;
+      min-width: 0;
+    }
+
+    .brand-right {
+      display: grid;
+      justify-items: end;
+      gap: 14px;
+      padding-bottom: 12px;
+      min-width: 0;
+    }
+
+    .kicker {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      grid-column: 2;
+      justify-self: start;
+      width: 330px;
+      max-width: 100%;
+      padding: 3px 8px 4px;
+      border: 0;
+      border-radius: 0;
       color: var(--muted);
-      letter-spacing: 0.04em;
+      font-size: 0.68rem;
+      letter-spacing: 0.075em;
       text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(234, 95, 36, 0.11);
+      animation: live-dot 2.6s ease-in-out infinite;
+    }
+
+    .brand h1 {
+      margin: 0;
+      max-width: none;
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(4.5rem, 8.25vw, 8.4rem);
+      font-weight: 400;
+      line-height: 0.76;
+      letter-spacing: -0.07em;
+      white-space: nowrap;
+      display: contents;
+    }
+
+    .brand-title-clip,
+    .brand-title-control {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(4.5rem, 8.25vw, 8.4rem);
+      font-weight: 400;
+      line-height: 0.76;
+      letter-spacing: -0.07em;
+      white-space: nowrap;
+    }
+
+    .brand h1 em {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .brand-copy {
+      margin: 0;
+      max-width: 650px;
+      color: var(--muted);
+      font-size: clamp(0.82rem, 1.02vw, 1.02rem);
+      letter-spacing: 0.07em;
+      line-height: 1.75;
+      text-align: right;
+    }
+
+    .cap-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      justify-self: end;
+      align-self: start;
+      max-width: 100%;
+    }
+
+    .cap {
+      padding: 9px 14px;
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.35);
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .cap.on {
+      color: var(--green);
+      border-color: rgba(37, 116, 71, 0.34);
+    }
+
+    .console {
+      padding: 22px 22px 20px;
+      min-height: 0;
+      transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+    }
+
+    .console.listening {
+      border-color: rgba(234, 95, 36, 0.42);
+      box-shadow: 0 28px 90px rgba(234, 95, 36, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .console-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+
+    .console-title-wrap {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .console-title {
+      margin: 0;
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: -0.025em;
+    }
+
+    .console-note,
+    .console-head label {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.5;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .console-head label {
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mode-toggle {
+      display: inline-flex;
+      justify-self: end;
+      gap: 6px;
+      padding: 5px;
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 250, 240, 0.5);
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    .mode-toggle button {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: background 0.18s, color 0.18s, transform 0.18s;
+    }
+
+    .mode-toggle button.active {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .mode-toggle button:active {
+      transform: translateY(1px);
+    }
+
+    .console.mode-batch .mode-toggle {
+      border-color: rgba(234, 95, 36, 0.34);
+      box-shadow: 0 0 0 4px rgba(234, 95, 36, 0.08);
+    }
+
+    .input-frame {
+      position: relative;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
 
     textarea {
       width: 100%;
-      padding: 18px 20px;
-      border: 1.5px solid var(--card-border);
-      border-radius: var(--radius);
-      background: var(--card);
-      color: var(--fg);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.88rem;
+      min-height: 188px;
+      resize: vertical;
+      border: 1.5px solid var(--line);
+      border-radius: 20px;
+      padding: 26px 180px 24px 28px;
+      background: #fffdf8;
+      color: var(--ink);
       outline: none;
+      font-size: 0.92rem;
+      letter-spacing: 0.04em;
+      line-height: 1.55;
+      transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
+    }
+
+    .console.mode-single textarea {
+      height: 58px;
+      min-height: 58px;
+      max-height: 58px;
       resize: none;
-      min-height: 56px;
-      transition: border-color 0.25s, box-shadow 0.25s;
-      margin-bottom: 6px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: pre;
+      padding: 17px 20px 15px;
+      line-height: 1.25;
     }
-    textarea:focus {
+
+    .console.mode-batch textarea {
+      height: auto;
+      min-height: 188px;
+      max-height: none;
+      overflow: auto;
+      white-space: pre-wrap;
+      padding: 26px 180px 24px 28px;
+    }
+
+    textarea::placeholder {
+      color: rgba(133, 121, 106, 0.78);
+    }
+
+    .input-hint {
+      position: absolute;
+      right: 28px;
+      top: 28px;
+      color: rgba(133, 121, 106, 0.74);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.18s, transform 0.18s;
+    }
+
+    .console.mode-batch .input-hint {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(232, 93, 42, 0.08);
-    }
-    textarea::placeholder { color: var(--muted); }
-
-    .hint {
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-bottom: 20px;
-      letter-spacing: 0.02em;
+      box-shadow: 0 0 0 4px rgba(234, 95, 36, 0.1);
     }
 
-    .controls {
+    textarea:focus {
+      transform: translateY(-1px);
+    }
+
+    .actions {
       display: flex;
       gap: 10px;
-      margin-bottom: 6px;
-      align-items: center;
+      margin-top: 14px;
     }
-    .pill-group {
-      display: flex;
-      border: 1.5px solid var(--card-border);
-      border-radius: 10px;
-      overflow: hidden;
-      background: var(--card);
-    }
-    .pill {
-      padding: 9px 18px;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.76rem;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-    .pill.active { background: var(--fg); color: var(--bg); }
-    .pill:not(.active):hover { color: var(--fg); }
 
-    .fetch-btn {
-      flex: 1;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      background: var(--accent);
-      color: #fff;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.82rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
+    .console-actions {
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .console-actions .btn {
+      min-height: 54px;
+      border-radius: 16px;
+      font-size: 0.78rem;
       letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-    .fetch-btn:hover { background: var(--accent-hover); }
-    .fetch-btn:active { transform: scale(0.98); }
-    .fetch-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-    /* Cards */
-    .cards { margin-top: 24px; }
-
-    .card {
-      display: flex;
-      gap: 14px;
-      border: 1.5px solid var(--card-border);
-      border-radius: var(--radius);
-      background: var(--card);
-      padding: 14px;
-      margin-bottom: 10px;
-      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
-    .card-thumb {
-      width: 120px;
-      min-width: 120px;
-      height: 80px;
-      border-radius: 8px;
+    .console-actions .btn.primary {
+      flex: 1 1 auto;
+    }
+
+    .console-actions .btn.secondary {
+      flex: 1 1 auto;
+      border: 1.5px solid rgba(234, 95, 36, 0.52);
+      background: rgba(255, 250, 240, 0.42);
+      color: var(--accent-dark);
+    }
+
+    .console-actions .btn.secondary:hover {
+      background: rgba(234, 95, 36, 0.08);
+      box-shadow: 0 10px 24px rgba(234, 95, 36, 0.12);
+    }
+
+    .console-actions .btn.ghost {
+      flex: 0 0 112px;
+      background: rgba(255, 250, 240, 0.42);
+    }
+
+    .params-panel {
+      transition: opacity 0.24s, filter 0.24s, transform 0.24s;
+    }
+
+    .params-panel:not(.ready) {
+      opacity: 0.58;
+    }
+
+    .params-content,
+    .params-empty {
       overflow: hidden;
-      background: var(--card-border);
-      flex-shrink: 0;
-      position: relative;
+      transition: opacity 0.22s, max-height 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s;
     }
-    .card-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
+
+    .params-content {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
     }
-    /* No-thumbnail icon */
-    .card-thumb .no-thumb {
-      width: 100%;
-      height: 100%;
-      display: flex;
+
+    .params-panel.ready .params-content {
+      max-height: 900px;
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .params-panel.ready .params-empty {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+    }
+
+    .params-empty {
+      max-height: 160px;
+    }
+
+    .export-preview {
+      display: grid;
+      grid-template-columns: 122px minmax(0, 1fr);
+      gap: 14px;
       align-items: center;
-      justify-content: center;
-      color: var(--muted);
-    }
-    .card-thumb .no-thumb svg {
-      width: 28px;
-      height: 28px;
-      opacity: 0.5;
-    }
-
-    /* Shimmer skeleton for loading state */
-    .card-thumb.loading {
-      background: var(--shimmer);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-    .skeleton-line {
-      height: 12px;
-      border-radius: 4px;
-      background: var(--shimmer);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      margin-bottom: 6px;
-    }
-    .skeleton-line.short { width: 40%; height: 10px; }
-    .skeleton-line.medium { width: 75%; }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+      margin-bottom: 16px;
+      padding: 13px;
+      border: 1.5px solid var(--line);
+      border-radius: 18px;
+      background: #fffdf8;
+      animation: rise 0.34s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .card-body {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+    .export-preview .thumb {
+      width: 122px;
+      height: 78px;
     }
-    .card-title {
+
+    .export-preview h3 {
+      margin: 0 0 7px;
       font-family: 'Instrument Serif', serif;
-      font-size: 1rem;
-      line-height: 1.3;
-      color: var(--fg);
-      margin-bottom: 2px;
+      font-size: 1.25rem;
+      font-weight: 400;
+      line-height: 1.1;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .card-meta {
-      font-size: 0.68rem;
-      color: var(--muted);
-      letter-spacing: 0.03em;
+
+    .field.span-2,
+    .clip-range,
+    .format-picker,
+    .assembly-warning {
+      grid-column: 1 / -1;
+    }
+
+    .clip-range {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .format-picker {
+      display: grid;
+      gap: 10px;
+    }
+
+    .format-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(120px, auto);
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1.5px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.26);
+      transition: border-color 0.18s, background 0.18s;
+    }
+
+    .format-row-title {
+      min-width: 0;
+      color: var(--ink);
+      font-size: 0.78rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .assembly-warning {
+      padding: 11px 12px;
+      border: 1.5px solid rgba(34, 95, 122, 0.22);
+      border-radius: 14px;
+      background: rgba(34, 95, 122, 0.06);
+      color: var(--blue);
+      font-size: 0.72rem;
+      line-height: 1.55;
+      transition: opacity 0.2s, transform 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+    .assembly-warning.danger {
+      border-color: rgba(184, 63, 55, 0.34);
+      background: rgba(184, 63, 55, 0.08);
+      color: var(--red);
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      background: var(--ink);
+      color: var(--paper);
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      transition: transform 0.16s, background 0.16s, opacity 0.16s, box-shadow 0.16s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn.primary {
+      flex: 1;
+      background: var(--accent);
+    }
+
+    .btn.primary:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 10px 24px rgba(234, 95, 36, 0.22);
+    }
+
+    .btn.ghost {
+      border: 1.5px solid var(--line);
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .main-stage {
+      display: grid;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .panel {
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 240, 0.84);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .run-panel {
+      min-height: 690px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .run-panel .panel-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .run-panel .cards {
+      flex: 1;
+      align-content: start;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1.5px solid var(--line);
+      background: rgba(255, 244, 220, 0.68);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .panel-note {
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.5;
+    }
+
+    .panel-body {
+      padding: 18px 20px 20px;
+    }
+
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    select,
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      border: 1.5px solid var(--line);
+      border-radius: 13px;
+      padding: 11px 12px;
+      background: #fffdf8;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.16s, box-shadow 0.16s;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 42px;
+      color: var(--ink);
+      font-size: 0.78rem;
+    }
+
+    .toggle input {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--accent);
+    }
+
+    .toggle input:checked {
+      animation: tick-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .cards {
+      display: grid;
+      gap: 11px;
+    }
+
+    .card {
+      display: grid;
+      grid-template-columns: 122px minmax(0, 1fr);
+      gap: 14px;
+      padding: 13px;
+      border: 1.5px solid var(--line);
+      border-radius: 18px;
+      background: #fffdf8;
+      animation: rise 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s, box-shadow 0.18s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(234, 95, 36, 0.32);
+      box-shadow: 0 14px 34px rgba(62, 43, 18, 0.08);
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .thumb {
+      width: 122px;
+      height: 78px;
+      border-radius: 13px;
+      background: var(--panel-strong);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card h3 {
+      margin: 0 0 5px;
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      line-height: 1.5;
     }
 
     .card-actions {
       display: flex;
-      gap: 6px;
-      align-items: center;
       flex-wrap: wrap;
-    }
-
-    .card-dl-btn {
-      padding: 6px 14px;
-      border: none;
-      border-radius: 7px;
-      background: var(--fg);
-      color: var(--bg);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-    .card-dl-btn:hover { background: #2d2d2a; }
-    .card-dl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .card-dl-btn.done { background: var(--success); color: #fff; }
-    .card-dl-btn.error { background: var(--error); color: #fff; }
-
-    .card-status {
-      font-size: 0.68rem;
-      color: var(--muted);
-    }
-    .card-status.downloading { color: var(--accent); }
-    .card-status.done { color: var(--success); }
-    .card-status.error { color: var(--error); }
-
-    .q-chip {
-      padding: 4px 10px;
-      border: 1.5px solid var(--card-border);
-      border-radius: 6px;
-      background: transparent;
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.65rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .q-chip.active {
-      border-color: var(--fg);
-      color: var(--fg);
-      background: rgba(26,26,24,0.04);
-    }
-    .q-chip:hover:not(.active) { border-color: var(--muted); }
-
-    /* Error card */
-    .card.card-error {
-      border-color: rgba(196, 61, 61, 0.2);
-      background: rgba(196, 61, 61, 0.03);
-    }
-    .card-error-icon {
-      width: 100%;
-      height: 100%;
-      display: flex;
+      gap: 8px;
+      margin-top: 10px;
       align-items: center;
-      justify-content: center;
-      background: rgba(196, 61, 61, 0.08);
-      color: var(--error);
-    }
-    .card-error-icon svg {
-      width: 24px;
-      height: 24px;
-    }
-    .card-error-msg {
-      font-size: 0.72rem;
-      color: var(--error);
-      margin-top: 2px;
-      line-height: 1.4;
-    }
-    .card-error-url {
-      font-size: 0.65rem;
-      color: var(--muted);
-      word-break: break-all;
-      margin-top: 4px;
     }
 
-    /* Download all bar */
-    .dl-all-bar {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .dl-all-btn {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      background: var(--fg);
-      color: var(--bg);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.82rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 0.04em;
+    .mini {
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: transparent;
+      color: var(--ink);
+      font-size: 0.68rem;
       text-transform: uppercase;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      transition: transform 0.16s, border-color 0.16s, background 0.16s, color 0.16s;
     }
-    .dl-all-btn:hover { background: #2d2d2a; }
-    .dl-all-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .spin {
-      display: inline-block;
-      width: 10px; height: 10px;
-      border: 2px solid currentColor;
-      border-right-color: transparent;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      vertical-align: middle;
+    .mini:hover {
+      transform: translateY(-1px);
+      border-color: rgba(234, 95, 36, 0.44);
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .mini.hot {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--paper);
+    }
+
+    .mini.good {
+      color: var(--green);
+      border-color: rgba(37, 116, 71, 0.35);
+    }
+
+    .mini.bad {
+      color: var(--red);
+      border-color: rgba(184, 63, 55, 0.35);
+    }
+
+    .quality-select {
+      width: auto;
+      max-width: 118px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-size: 0.68rem;
+    }
+
+    .statusbar {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .progress {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      border: 1.5px solid var(--line);
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #f4b24f);
+      transition: width 0.28s ease;
+    }
+
+    .statusbar.running .progress span {
+      background-size: 180% 100%;
+      animation: progress-sheen 1.35s linear infinite;
+    }
+
+    .empty {
+      position: relative;
+      overflow: hidden;
+      padding: 24px;
+      border: 1.5px dashed var(--line);
+      border-radius: 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .empty strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--ink);
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+    }
+
+    .empty.loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.42), transparent 70%);
+      transform: translateX(-100%);
+      animation: sweep 1.25s ease-in-out infinite;
+    }
+
+    .error {
+      color: var(--red);
+    }
+
+    .error.shake {
+      animation: soft-shake 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
     .footer {
-      margin-top: 48px;
-      text-align: center;
-      font-size: 0.68rem;
+      margin-top: 24px;
       color: var(--muted);
-      letter-spacing: 0.05em;
+      font-size: 0.68rem;
+      text-align: center;
       text-transform: uppercase;
+      letter-spacing: 0.08em;
       line-height: 1.8;
     }
 
-    /* Mobile */
-    @media (max-width: 500px) {
-      .brand h1 { font-size: 3rem; }
-      .page { padding: 40px 16px 60px; }
-      .card { flex-direction: column; gap: 10px; }
-      .card-thumb {
-        width: 100%;
-        min-width: unset;
-        height: 160px;
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 20;
+      max-width: min(360px, calc(100vw - 36px));
+      padding: 12px 14px;
+      border: 1.5px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 250, 240, 0.94);
+      box-shadow: 0 18px 50px rgba(62, 43, 18, 0.18);
+      color: var(--ink);
+      font-size: 0.72rem;
+      line-height: 1.55;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .burst {
+      position: fixed;
+      left: 50%;
+      top: 48%;
+      z-index: 19;
+      pointer-events: none;
+    }
+
+    .spark {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--spark-color, var(--accent));
+      opacity: 0;
+      transform: rotate(var(--angle)) translateY(0) scale(0.7);
+      animation: spark-out 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes page-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
       }
-      .card-title { white-space: normal; }
-      .controls { flex-wrap: wrap; }
-      .fetch-btn { width: 100%; }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes live-dot {
+
+      0%,
+      100% {
+        transform: scale(0.84);
+        opacity: 0.72;
+      }
+
+      50% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes tick-pop {
+      0% {
+        transform: scale(0.82);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes progress-sheen {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      100% {
+        background-position: 180% 50%;
+      }
+    }
+
+    @keyframes sweep {
+      to {
+        transform: translateX(100%);
+      }
+    }
+
+    @keyframes soft-shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      35% {
+        transform: translateX(-4px);
+      }
+
+      70% {
+        transform: translateX(3px);
+      }
+    }
+
+    @keyframes spark-out {
+      0% {
+        opacity: 0;
+        transform: rotate(var(--angle)) translateY(0) scale(0.7);
+      }
+
+      18% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+        transform: rotate(var(--angle)) translateY(-84px) scale(0.15);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+
+    @media (max-width: 1080px) {
+      .layout-board {
+        grid-template-columns: 1fr;
+      }
+
+      .brand {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        max-height: none;
+      }
+
+      .brand-left {
+        width: fit-content;
+        max-width: 100%;
+      }
+
+      .brand-right {
+        justify-items: start;
+      }
+
+      .kicker {
+        justify-self: start;
+      }
+
+      .brand-copy {
+        margin-top: 18px;
+        max-width: 72ch;
+        text-align: left;
+      }
+
+      .cap-row {
+        justify-content: flex-start;
+        justify-self: start;
+      }
+
+      .run-panel {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .shell {
+        width: min(100% - 20px, 1320px);
+        padding-top: 18px;
+      }
+
+      .brand,
+      .console,
+      .panel {
+        border-radius: 18px;
+      }
+
+      .brand {
+        padding: 24px;
+      }
+
+      .brand-title-clip,
+      .brand-title-control {
+        font-size: clamp(3.2rem, 14vw, 4.4rem);
+      }
+
+      .console {
+        padding: 24px;
+        min-height: auto;
+      }
+
+      .console-head {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .mode-toggle {
+        justify-self: start;
+      }
+
+      .console-head label {
+        white-space: normal;
+        overflow: visible;
+        text-align: left;
+      }
+
+      textarea {
+        min-height: 230px;
+        padding: 28px 24px;
+        font-size: 1.15rem;
+      }
+
+      .console.mode-single textarea {
+        height: 56px;
+        min-height: 56px;
+        max-height: 56px;
+        padding: 16px 18px;
+        font-size: 0.92rem;
+      }
+
+      .console.mode-batch textarea {
+        min-height: 190px;
+        padding: 24px 20px;
+        font-size: 0.92rem;
+      }
+
+      .input-hint {
+        position: static;
+        display: block;
+        margin: 10px 0 0;
+      }
+
+      .clip-range,
+      .format-row {
+        grid-template-columns: 1fr;
+      }
+
+      .console-actions .btn.ghost {
+        flex-basis: auto;
+      }
+
+      .option-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .card {
+        grid-template-columns: 1fr;
+      }
+
+      .export-preview {
+        grid-template-columns: 1fr;
+      }
+
+      .thumb {
+        width: 100%;
+        height: 170px;
+      }
+
+      .card h3 {
+        white-space: normal;
+      }
     }
   </style>
 </head>
+
 <body>
-  <div class="page">
-    <div class="brand">
-      <h1>Re<em>Clip</em></h1>
-      <p>Free media downloader</p>
-    </div>
-
-    <textarea id="urls" placeholder="Paste one or more URLs..." rows="2"></textarea>
-    <p class="hint">Multiple links? Separate with spaces, commas, or newlines.</p>
-
-    <div class="controls">
-      <div class="pill-group">
-        <button class="pill active" data-format="video" onclick="setFormat(this)">MP4</button>
-        <button class="pill" data-format="audio" onclick="setFormat(this)">MP3</button>
+  <main class="shell">
+    <header class="brand">
+      <div class="brand-left">
+        <h1 aria-label="ReClip Control">
+          <span class="brand-title-clip">Re<em>Clip</em></span>
+          <span class="brand-title-control">Control</span>
+        </h1>
+        <span class="kicker">One local console · Every export</span>
       </div>
-      <button class="fetch-btn" id="goBtn" onclick="go()">Fetch</button>
-    </div>
+      <div class="brand-right">
+        <p class="brand-copy">Paste a video from any platform, YouTube channel or handle, and get it turned into clean audios,
+          transcripts, clips, & metadata.</p>
+        <div class="cap-row" id="caps">
+          <span class="cap">yt-dlp</span>
+          <span class="cap">ffmpeg</span>
+          <span class="cap" id="cap-aai">AssemblyAI</span>
+          <span class="cap" id="cap-gemini">Gemini</span>
+        </div>
+      </div>
+    </header>
 
-    <div id="cards" class="cards"></div>
+    <section class="layout-board">
+      <section class="main-stage">
+        <div class="console mode-single" id="importCard">
+          <div class="console-head">
+            <div class="console-title-wrap">
+              <h2 class="console-title">Import Elements</h2>
+              <label for="sourceInput">Paste media URLs, YouTube handles, channel IDs, or video IDs</label>
+            </div>
+            <div class="mode-toggle" role="group" aria-label="Input mode">
+              <button type="button" id="singleModeBtn" class="active" aria-pressed="true">Single</button>
+              <button type="button" id="batchModeBtn" aria-pressed="false">Batch</button>
+            </div>
+          </div>
+          <div class="input-frame">
+            <textarea id="sourceInput" wrap="off"
+              placeholder="https://youtu.be/...&#10;@channel&#10;https://www.tiktok.com/..."></textarea>
+            <span class="input-hint">One item per line</span>
+          </div>
+          <div class="actions console-actions">
+            <button class="btn secondary" id="analyzeBtn">Analyze Input</button>
+            <button class="btn ghost" id="clearBtn">Clear</button>
+          </div>
+        </div>
 
-    <div class="footer">
-      YouTube &middot; TikTok &middot; Instagram &middot; Twitter/X &middot; Reddit &middot; Facebook<br>
-      Vimeo &middot; Twitch &middot; Dailymotion &middot; SoundCloud &middot; Loom &middot; Streamable<br>
-      Pinterest &middot; Tumblr &middot; Threads &middot; LinkedIn &middot; 1000+ more
-    </div>
-  </div>
+        <div class="panel params-panel" id="paramsPanel">
+          <div class="panel-head">
+            <h2 class="panel-title">Export Parameters</h2>
+            <div class="panel-note" id="modeNote">Analyze input to unlock smart options.</div>
+          </div>
+          <div class="panel-body">
+            <div class="params-empty empty" id="paramsEmpty"><strong>Waiting for media.</strong>Analyze a link first, then ReClip will reveal only the parameters that apply.</div>
+            <div class="params-content" inert aria-hidden="true">
+              <div class="export-preview hidden" id="exportPreview"></div>
+              <div class="option-grid">
+              <div class="field">
+                <label for="outputFormat">Output</label>
+                <select id="outputFormat">
+                  <option value="video">Video</option>
+                  <option value="audio">Audio</option>
+                  <option value="text">Transcript</option>
+                </select>
+              </div>
+              <div class="field" id="qualityField">
+                <label for="quality">Quality</label>
+                <select id="quality">
+                  <option value="optimized">Optimized</option>
+                  <option value="highest">Highest</option>
+                  <option value="compressed">Compressed</option>
+                </select>
+              </div>
+              <div class="format-picker hidden" id="formatPickerField">
+                <label>Video Quality</label>
+                <div id="formatPickerRows"></div>
+              </div>
+              <div class="field" id="textExtField">
+                <label for="textExtension">Transcript Format</label>
+                <select id="textExtension">
+                  <option value="txt">TXT</option>
+                  <option value="md">Markdown</option>
+                  <option value="json">JSON</option>
+                </select>
+              </div>
+              <div class="field" id="audioExtField">
+                <label for="audioExtension">Audio Format</label>
+                <select id="audioExtension">
+                  <option value="mp3">MP3</option>
+                  <option value="wav">WAV</option>
+                </select>
+              </div>
+              <div class="field" id="videoExtField">
+                <label for="videoExtension">Video Format</label>
+                <select id="videoExtension">
+                  <option value="mp4">MP4</option>
+                  <option value="mkv">MKV</option>
+                </select>
+              </div>
+              <div class="field channel-only">
+                <label for="maxVideos">Max Videos</label>
+                <input id="maxVideos" type="number" min="1" value="5">
+              </div>
+              <div class="field channel-only">
+                <label for="order">Sort</label>
+                <select id="order">
+                  <option value="date">Newest first</option>
+                  <option value="popularity">Popularity</option>
+                </select>
+              </div>
+              <div class="clip-range video-only">
+                <div class="field">
+                  <label for="clipStart">Clip From</label>
+                  <input id="clipStart" type="text" placeholder="00:00">
+                </div>
+                <div class="field">
+                  <label for="clipEnd">Clip To</label>
+                  <input id="clipEnd" type="text" placeholder="duration">
+                </div>
+              </div>
+              <label class="toggle transcript-option">
+                <input id="transcription" type="checkbox">
+                Include transcript with audio/video
+              </label>
+              <div class="field transcript-controls attached-transcript-control">
+                <label for="transcriptionFormat">Attached Transcript</label>
+                <select id="transcriptionFormat">
+                  <option value="txt">TXT</option>
+                  <option value="md">Markdown</option>
+                  <option value="json">JSON</option>
+                </select>
+              </div>
+              <div class="field transcript-source-control">
+                <label for="transcriptFallback">Transcript Fallback</label>
+                <select id="transcriptFallback">
+                  <option value="auto_captions">Captions before AssemblyAI</option>
+                  <option value="assemblyai_transcripts">AssemblyAI first</option>
+                </select>
+              </div>
+              <div class="assembly-warning hidden" id="assemblyWarning"></div>
+              <label class="toggle transcript-source-control">
+                <input id="geminiCleanup" type="checkbox">
+                Clean auto captions with Gemini
+              </label>
+              <label class="toggle">
+                <input id="videoMetadata" type="checkbox" checked>
+                Include video metadata
+              </label>
+              <label class="toggle channel-only">
+                <input id="channelMetadata" type="checkbox">
+                Include channel metadata
+              </label>
+            </div>
+              <div class="actions">
+                <button class="btn primary" id="startBtn" disabled>Start Export</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel run-panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Run Desk</h2>
+          <div class="panel-note" id="summary">No input analyzed yet.</div>
+        </div>
+        <div class="panel-body">
+          <div id="jobStatus" class="statusbar hidden">
+            <div class="meta" id="jobMessage">Queued</div>
+            <div class="progress"><span id="jobProgress"></span></div>
+            <div class="card-actions" id="jobArtifacts"></div>
+          </div>
+          <div id="cards" class="cards">
+            <div class="empty"><strong>Desk is clean</strong>Paste links, a YouTube handle, or a channel ID. ReClip will
+              detect the workflow and keep the noisy controls out of the way.</div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <div class="footer">YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Vimeo · Twitch · SoundCloud ·
+      1000+ more</div>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="burst" id="burst" aria-hidden="true"></div>
 
   <script>
-    let currentFormat = 'video';
-    let cardData = [];
+    const state = {
+      resolved: null,
+      job: null,
+      poll: null,
+      capabilities: { assemblyai: false, gemini: false },
+      selectedFormats: {},
+      lastCelebratedJob: null,
+      inputMode: 'single',
+      lastRenderedItemsSignature: '',
+      analyzeTimer: null,
+      analyzeController: null,
+      analyzeGeneration: 0,
+    };
 
-    function setFormat(btn) {
-      document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentFormat = btn.dataset.format;
+    const $ = id => document.getElementById(id);
+    const loadingLines = [
+      ['Checking the signal', 'Resolving the input before yt-dlp takes the wheel...'],
+      ['Sorting export routes', 'Detecting whether this is a channel, a video, or a quick pull...'],
+      ['Looking for clean artifacts', 'Reading formats, captions, thumbnails, and metadata hints...'],
+      ['Keeping it local', 'Preparing the desk without sending work anywhere unexpected...'],
+    ];
+
+    function esc(value) {
+      const div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
     }
 
-    function parseUrls(text) {
-      return [...new Set(text.split(/[\s,]+/).map(u => u.trim()).filter(u => u.startsWith('http')))];
+    function fmtDur(seconds) {
+      if (!seconds) return '';
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return h ? `${h}:${m.toString().padStart(2, '0')}:${s}` : `${m}:${s}`;
     }
 
-    function fmtDur(s) {
-      if (!s) return '';
-      const m = Math.floor(s / 60);
-      const sec = Math.floor(s % 60);
-      return `${m}:${sec.toString().padStart(2, '0')}`;
+    function splitInputLines(value) {
+      return (value || '')
+        .split(/\n+/)
+        .map(line => line.trim())
+        .filter(Boolean);
     }
 
-    function esc(s) {
-      const d = document.createElement('div');
-      d.textContent = s;
-      return d.innerHTML;
+    function currentInputValue() {
+      const raw = $('sourceInput').value.trim();
+      if (state.inputMode === 'batch') return raw;
+      return splitInputLines(raw)[0] || raw;
+    }
+
+    function totalDurationSeconds() {
+      return (state.resolved?.items || []).reduce((sum, item) => sum + (Number(item.duration) || 0), 0);
+    }
+
+    function transcriptCaptionLabel() {
+      const items = state.resolved?.items || [];
+      if (items.some(item => item.has_manual_subtitles)) return 'Provided captions';
+      return 'Auto-generated captions';
+    }
+
+    function setInputMode(mode) {
+      state.inputMode = mode;
+      $('importCard').classList.toggle('mode-batch', mode === 'batch');
+      $('importCard').classList.toggle('mode-single', mode !== 'batch');
+      $('singleModeBtn').classList.toggle('active', mode !== 'batch');
+      $('batchModeBtn').classList.toggle('active', mode === 'batch');
+      $('singleModeBtn').setAttribute('aria-pressed', String(mode !== 'batch'));
+      $('batchModeBtn').setAttribute('aria-pressed', String(mode === 'batch'));
+      $('sourceInput').setAttribute('wrap', mode === 'batch' ? 'soft' : 'off');
+      $('sourceInput').placeholder = mode === 'batch'
+        ? 'https://youtu.be/...\n@channel\nhttps://www.tiktok.com/...'
+        : 'https://www.youtube.com/watch?...';
     }
 
     function friendlyError(err) {
-      if (err.includes('Unsupported URL')) return 'This URL is not supported';
-      if (err.includes('Video unavailable')) return 'Video is unavailable or private';
-      if (err.includes('Private video')) return 'This video is private';
-      if (err.includes('HTTP Error 403')) return 'Access denied by the platform';
-      if (err.includes('HTTP Error 404')) return 'Video not found';
-      if (err.includes('copyright')) return 'Video blocked due to copyright';
-      if (err.includes('geo')) return 'Video not available in your region';
-      if (err.includes('timed out') || err.includes('Timed out')) return 'Request timed out — try again';
-      if (err.includes('network') || err.includes('Network')) return 'Network error — check your connection';
-      return err.length > 80 ? err.slice(0, 80) + '...' : err;
+      const text = err || 'Export failed';
+      if (text.includes('Unsupported URL')) return 'This URL is not supported';
+      if (text.includes('Video unavailable')) return 'Video unavailable or private';
+      if (text.includes('Private video')) return 'Private video';
+      if (text.includes('HTTP Error 403')) return 'Access denied by platform';
+      if (text.includes('timed out')) return 'Request timed out';
+      if (text.includes('ASSEMBLYAI_API_KEY')) return 'AssemblyAI key missing on server';
+      return text.length > 110 ? text.slice(0, 110) + '...' : text;
     }
 
-    document.getElementById('urls').addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); }
-    });
+    function emptyState(title, body, extraClass = '') {
+      return `<div class="empty ${extraClass}"><strong>${esc(title)}</strong>${esc(body)}</div>`;
+    }
 
-    async function go() {
-      const urls = parseUrls(document.getElementById('urls').value);
-      if (!urls.length) return;
+    function toast(message) {
+      const el = $('toast');
+      el.textContent = message;
+      el.classList.add('show');
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => el.classList.remove('show'), 2800);
+    }
 
-      const btn = document.getElementById('goBtn');
-      const container = document.getElementById('cards');
-      btn.disabled = true;
-      btn.textContent = 'Loading...';
-      container.innerHTML = '';
-      cardData = [];
+    function celebrate() {
+      const root = $('burst');
+      root.innerHTML = '';
+      const colors = ['var(--accent)', '#f4b24f', 'var(--green)', 'var(--blue)'];
+      for (let i = 0; i < 18; i++) {
+        const spark = document.createElement('span');
+        spark.className = 'spark';
+        spark.style.setProperty('--angle', `${(360 / 18) * i}deg`);
+        spark.style.setProperty('--spark-color', colors[i % colors.length]);
+        spark.style.animationDelay = `${(i % 4) * 16}ms`;
+        root.appendChild(spark);
+      }
+      setTimeout(() => { root.innerHTML = ''; }, 900);
+    }
 
-      for (let i = 0; i < urls.length; i++) {
-        const url = urls[i];
-        const idx = cardData.length;
-        cardData.push({ url, status: 'loading' });
-        renderCard(idx);
+    function setParamsReady(ready) {
+      const panel = $('paramsPanel');
+      const content = document.querySelector('.params-content');
+      panel.classList.toggle('ready', ready);
+      content.inert = !ready;
+      content.setAttribute('aria-hidden', String(!ready));
+    }
 
-        try {
-          const res = await fetch('/api/info', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url }),
-          });
-          const data = await res.json();
-          if (data.error) {
-            cardData[idx] = { ...cardData[idx], status: 'info-error', error: data.error };
-          } else {
-            cardData[idx] = {
-              ...cardData[idx],
-              status: 'ready',
-              title: data.title || '',
-              thumbnail: data.thumbnail || '',
-              duration: data.duration,
-              uploader: data.uploader || '',
-              formats: data.formats || [],
-              selectedFormatId: data.formats?.[0]?.id || null,
-            };
-          }
-        } catch (err) {
-          cardData[idx] = { ...cardData[idx], status: 'info-error', error: err.message };
+    async function loadCapabilities() {
+      try {
+        const res = await fetch('/api/capabilities');
+        state.capabilities = await res.json();
+      } catch { }
+      $('cap-aai').classList.toggle('on', !!state.capabilities.assemblyai);
+      $('cap-gemini').classList.toggle('on', !!state.capabilities.gemini);
+      syncOptions();
+    }
+
+    function cancelPendingAnalyze() {
+      clearTimeout(state.analyzeTimer);
+      state.analyzeTimer = null;
+      if (state.analyzeController) {
+        state.analyzeGeneration += 1;
+        state.analyzeController.abort();
+        state.analyzeController = null;
+      }
+    }
+
+    function scheduleAnalyze(delay = 600) {
+      clearTimeout(state.analyzeTimer);
+      if (state.analyzeController) {
+        state.analyzeGeneration += 1;
+        state.analyzeController.abort();
+        state.analyzeController = null;
+      }
+      if (!currentInputValue()) return;
+      state.analyzeTimer = setTimeout(() => {
+        state.analyzeTimer = null;
+        analyze({ silentEmpty: true });
+      }, delay);
+    }
+
+    async function analyze(options = {}) {
+      clearTimeout(state.analyzeTimer);
+      state.analyzeTimer = null;
+      const input = currentInputValue();
+      if (!input) {
+        if (!options.silentEmpty) toast('Paste a link, handle, channel ID, or video ID first.');
+        $('sourceInput').focus();
+        return;
+      }
+      if (state.analyzeController) state.analyzeController.abort();
+      const generation = ++state.analyzeGeneration;
+      const controller = new AbortController();
+      state.analyzeController = controller;
+      const line = loadingLines[Math.floor(Math.random() * loadingLines.length)];
+      document.querySelector('.console').classList.add('listening');
+      $('analyzeBtn').disabled = true;
+      $('analyzeBtn').textContent = 'Analyzing...';
+      $('cards').innerHTML = emptyState(line[0], line[1], 'loading');
+      $('jobStatus').classList.add('hidden');
+      $('jobStatus').classList.remove('running');
+      state.job = null;
+      state.lastCelebratedJob = null;
+      state.lastRenderedItemsSignature = '';
+      clearInterval(state.poll);
+
+      try {
+        const res = await fetch('/api/resolve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input }),
+          signal: controller.signal,
+        });
+        const data = await res.json();
+        if (generation !== state.analyzeGeneration) return;
+        if (!res.ok || data.error) throw new Error(data.error || 'Could not analyze input');
+        state.resolved = data;
+        state.selectedFormats = {};
+        for (const item of data.items || []) {
+          if (item.formats && item.formats.length) state.selectedFormats[item.id] = item.formats[0].id;
         }
-        renderCard(idx);
+        renderResolved();
+        toast(data.kind === 'channel' ? 'Channel mode unlocked.' : 'Input analyzed. Choose the export shape.');
+      } catch (err) {
+        if (err.name === 'AbortError' || generation !== state.analyzeGeneration) return;
+        state.resolved = null;
+        setParamsReady(false);
+        $('cards').innerHTML = emptyState('Signal lost', friendlyError(err.message), 'error shake');
+        $('summary').textContent = 'Analyze failed.';
+      } finally {
+        if (generation === state.analyzeGeneration) {
+          state.analyzeController = null;
+          document.querySelector('.console').classList.remove('listening');
+          $('analyzeBtn').disabled = false;
+          $('analyzeBtn').textContent = 'Analyze Input';
+          syncOptions();
+        }
       }
-
-      if (cardData.filter(c => c.status === 'ready').length > 1) {
-        renderDownloadAll();
-      }
-
-      btn.disabled = false;
-      btn.textContent = 'Fetch';
     }
 
-    function renderCard(idx) {
-      const c = cardData[idx];
-      let el = document.getElementById(`card-${idx}`);
-      if (!el) {
-        el = document.createElement('div');
-        el.id = `card-${idx}`;
-        el.className = 'card';
-        document.getElementById('cards').appendChild(el);
+    function renderResolved() {
+      const data = state.resolved;
+      if (!data) return;
+      const count = (data.items || []).length;
+      const label = data.kind === 'channel'
+        ? `${data.channel?.title || 'Channel'} · ${count} preview videos`
+        : `${count} item${count === 1 ? '' : 's'} ready`;
+      $('summary').textContent = label;
+      $('modeNote').textContent = data.kind === 'channel'
+        ? 'Channel export controls are active.'
+        : data.kind === 'video'
+          ? 'Single-video export controls are active.'
+          : 'Quick download controls are active.';
+      $('startBtn').disabled = false;
+      $('startBtn').textContent = data.kind === 'channel' ? 'Start Channel Export' : 'Start Export';
+      $('cards').innerHTML = (data.items || []).map(renderCard).join('');
+      setParamsReady(true);
+      if (data.kind === 'video' && data.items?.[0]?.duration) {
+        $('clipEnd').value = fmtDur(data.items[0].duration);
+      } else if (data.kind !== 'video') {
+        $('clipStart').value = '';
+        $('clipEnd').value = '';
       }
+      renderExportPreview();
+      renderFormatPicker();
+      syncOptions();
+    }
 
-      // Loading skeleton
-      if (c.status === 'loading') {
-        el.className = 'card';
-        el.innerHTML = `
-          <div class="card-thumb loading"></div>
-          <div class="card-body">
-            <div class="skeleton-line medium"></div>
-            <div class="skeleton-line short"></div>
-          </div>
-        `;
+    function mediaMeta(item, includeDate = true) {
+      return `${esc(item.uploader || '')}${item.duration ? ' · ' + fmtDur(item.duration) : ''}${includeDate && item.upload_date ? ' · ' + esc(item.upload_date) : ''}`;
+    }
+
+    function renderExportPreview() {
+      const preview = $('exportPreview');
+      const items = state.resolved?.items || [];
+      const item = items.length === 1 && state.resolved?.kind === 'video' ? items[0] : null;
+      if (!item) {
+        preview.classList.add('hidden');
+        preview.innerHTML = '';
         return;
       }
 
-      // Error state
-      if (c.status === 'info-error') {
-        el.className = 'card card-error';
-        el.innerHTML = `
-          <div class="card-thumb">
-            <div class="card-error-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      const thumb = item.thumbnail
+        ? `<img src="${esc(item.thumbnail)}" alt="">`
+        : `<span>${item.id ? esc(item.id.slice(0, 6)) : 'media'}</span>`;
+      preview.innerHTML = `
+        <div class="thumb">${thumb}</div>
+        <div>
+          <h3>${esc(item.title || 'Untitled')}</h3>
+          <div class="meta">${mediaMeta(item)}</div>
+        </div>
+      `;
+      preview.classList.remove('hidden');
+    }
+
+    function renderCard(item) {
+      const thumb = item.thumbnail
+        ? `<img src="${esc(item.thumbnail)}" alt="">`
+        : `<span>${item.id ? esc(item.id.slice(0, 6)) : 'media'}</span>`;
+      return `
+        <article class="card" id="item-${esc(item.id)}">
+          <div class="thumb">${thumb}</div>
+          <div>
+            <h3>${esc(item.title || 'Untitled')}</h3>
+            <div class="meta">${mediaMeta(item)}</div>
+            <div class="card-actions">
+              <button class="mini hot export-one" data-export-url="${esc(item.url)}">Export This</button>
             </div>
           </div>
-          <div class="card-body">
-            <div class="card-title" style="color:var(--error)">Could not fetch video</div>
-            <div class="card-error-msg">${esc(friendlyError(c.error || ''))}</div>
-            <div class="card-error-url">${esc(c.url)}</div>
-          </div>
-        `;
-        return;
-      }
-
-      // Ready / downloading / done / error states
-      el.className = 'card';
-      const isAudio = currentFormat === 'audio';
-
-      let thumbHtml;
-      if (isAudio) {
-        thumbHtml = `<div class="no-thumb" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`;
-      } else if (c.thumbnail) {
-        thumbHtml = `<img src="${c.thumbnail}" alt="">`;
-      } else {
-        thumbHtml = `<div class="no-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
-      }
-
-      let qualityChips = '';
-      if (!isAudio && c.formats && c.formats.length > 1) {
-        qualityChips = c.formats.map(f =>
-          `<button class="q-chip${f.id === c.selectedFormatId ? ' active' : ''}" onclick="pickFormat(${idx}, '${f.id}')">${f.label}</button>`
-        ).join('');
-      }
-
-      let actionHtml = '';
-      if (c.status === 'ready') {
-        actionHtml = `<button class="card-dl-btn" onclick="dlCard(${idx})">Download</button>${qualityChips}`;
-      } else if (c.status === 'downloading') {
-        actionHtml = `<span class="card-status downloading"><span class="spin"></span> Downloading...</span>`;
-      } else if (c.status === 'done') {
-        actionHtml = `<button class="card-dl-btn done" onclick="saveCard(${idx})">Save</button>
-          <span class="card-status done">${esc(c.filename || '')}</span>`;
-      } else if (c.status === 'error') {
-        actionHtml = `<button class="card-dl-btn" onclick="dlCard(${idx})">Retry</button>
-          <span class="card-status error">${esc(friendlyError(c.error || 'Download failed'))}</span>`;
-      }
-
-      el.innerHTML = `
-        <div class="card-thumb">${thumbHtml}</div>
-        <div class="card-body">
-          <div class="card-title">${esc(c.title || 'Untitled')}</div>
-          <div class="card-meta">${esc(c.uploader)}${c.duration ? ' · ' + fmtDur(c.duration) : ''}</div>
-          <div class="card-actions">${actionHtml}</div>
-        </div>
+        </article>
       `;
     }
 
-    function renderDownloadAll() {
-      const existing = document.getElementById('dl-all-bar');
-      if (existing) existing.remove();
-
-      const bar = document.createElement('div');
-      bar.id = 'dl-all-bar';
-      bar.className = 'dl-all-bar';
-      bar.innerHTML = `<button class="dl-all-btn" onclick="dlAll()">Download All</button>`;
-      document.getElementById('cards').appendChild(bar);
+    function renderFormatPicker() {
+      const rows = $('formatPickerRows');
+      const items = state.resolved?.items || [];
+      const rowsHtml = items
+        .filter(item => item.formats && item.formats.length)
+        .map(item => {
+          if (!state.selectedFormats[item.id]) state.selectedFormats[item.id] = item.formats[0].id;
+          return `
+            <div class="format-row">
+              <div class="format-row-title">${esc(item.title || item.id || 'Media')}</div>
+              <select class="quality-select format-select" data-item-id="${esc(item.id)}">
+                ${item.formats.map(f => `<option value="${esc(f.id)}" ${state.selectedFormats[item.id] === f.id ? 'selected' : ''}>${esc(f.label)}</option>`).join('')}
+              </select>
+            </div>
+          `;
+        })
+        .join('');
+      rows.innerHTML = rowsHtml || '<div class="meta">Video quality is selected automatically for this source.</div>';
     }
 
-    function pickFormat(idx, formatId) {
-      cardData[idx].selectedFormatId = formatId;
-      renderCard(idx);
+    function updateTranscriptFallbackOptions() {
+      const label = transcriptCaptionLabel();
+      const fallback = $('transcriptFallback');
+      const previous = fallback.value;
+      fallback.innerHTML = `
+        <option value="auto_captions">${esc(label)}</option>
+        <option value="assemblyai_transcripts">AssemblyAI captions</option>
+      `;
+      fallback.value = previous === 'assemblyai_transcripts' ? previous : 'auto_captions';
     }
 
-    async function dlCard(idx) {
-      const c = cardData[idx];
-      c.status = 'downloading';
-      c.error = null;
-      renderCard(idx);
+    function updateAssemblyWarning() {
+      const warning = $('assemblyWarning');
+      const output = $('outputFormat').value;
+      const usesTranscript = state.resolved && (output === 'text' || (output !== 'text' && $('transcription').checked));
+      const usesAssembly = usesTranscript && $('transcriptFallback').value === 'assemblyai_transcripts';
+      if (!usesAssembly) {
+        warning.classList.add('hidden');
+        warning.classList.remove('danger');
+        warning.textContent = '';
+        return;
+      }
+
+      const hours = totalDurationSeconds() / 3600;
+      const channelFlow = state.resolved?.kind === 'channel';
+      const multiFlow = (state.resolved?.items || []).length > 1;
+      const danger = channelFlow || (multiFlow && hours > 2);
+      warning.classList.toggle('danger', danger);
+      warning.classList.remove('hidden');
+      if (channelFlow) {
+        warning.textContent = 'AssemblyAI on a channel export can take significantly longer and may consume more quota.';
+      } else if (hours > 2) {
+        warning.textContent = `AssemblyAI is selected for about ${hours.toFixed(1)} hours of media. Expect a longer run.`;
+      } else {
+        warning.textContent = 'AssemblyAI usually takes longer because audio must be prepared, uploaded, and transcribed.';
+      }
+    }
+
+    function syncOptions() {
+      const kind = state.resolved?.kind || '';
+      const youtubeFlow = kind === 'channel' || kind === 'video';
+      let output = $('outputFormat').value;
+      if (!youtubeFlow && output === 'text') {
+        $('outputFormat').value = 'video';
+        output = 'video';
+      }
+      const channelFlow = kind === 'channel';
+      const videoFlow = kind === 'video';
+      const attachedTranscriptRelevant = youtubeFlow && output !== 'text' && $('transcription').checked;
+      const transcriptSourceRelevant = youtubeFlow && (output === 'text' || attachedTranscriptRelevant);
+      const hasVideoFormats = (state.resolved?.items || []).some(item => item.formats && item.formats.length);
+
+      for (const el of document.querySelectorAll('.channel-only')) el.classList.toggle('hidden', !channelFlow);
+      for (const el of document.querySelectorAll('.video-only')) el.classList.toggle('hidden', !videoFlow);
+      for (const el of document.querySelectorAll('.transcript-option')) el.classList.toggle('hidden', !youtubeFlow || output === 'text');
+      for (const el of document.querySelectorAll('.attached-transcript-control')) el.classList.toggle('hidden', !attachedTranscriptRelevant);
+      for (const el of document.querySelectorAll('.transcript-source-control')) el.classList.toggle('hidden', !transcriptSourceRelevant);
+
+      $('textExtField').classList.toggle('hidden', output !== 'text');
+      $('audioExtField').classList.toggle('hidden', output !== 'audio');
+      $('videoExtField').classList.toggle('hidden', output !== 'video');
+      $('qualityField').classList.toggle('hidden', output !== 'audio');
+      $('formatPickerField').classList.toggle('hidden', output !== 'video' || !hasVideoFormats);
+      $('quality').disabled = output !== 'audio';
+      $('geminiCleanup').disabled = !state.capabilities.gemini;
+      updateTranscriptFallbackOptions();
+      updateAssemblyWarning();
+
+    }
+
+    function buildConfig(overrideInput) {
+      const output = $('outputFormat').value;
+      return {
+        input: overrideInput || currentInputValue(),
+        mode: state.resolved?.kind === 'bulk' ? 'quick' : 'export',
+        output_format: output,
+        quality: $('quality').value,
+        text_extension: $('textExtension').value,
+        audio_extension: $('audioExtension').value,
+        video_extension: $('videoExtension').value,
+        transcription: $('transcription').checked,
+        transcription_format: $('transcriptionFormat').value,
+        transcript_fallback: $('transcriptFallback').value,
+        gemini_cleanup: $('geminiCleanup').checked,
+        video_metadata: $('videoMetadata').checked,
+        channel_metadata: $('channelMetadata').checked,
+        max_videos: Number($('maxVideos').value || 5),
+        order: $('order').value,
+        clip_start: $('clipStart').value.trim(),
+        clip_end: $('clipEnd').value.trim(),
+        format_ids: state.selectedFormats,
+      };
+    }
+
+    async function startJob(overrideInput) {
+      if (!state.resolved && !overrideInput) return;
+      const output = $('outputFormat').value;
+      const usesAssembly = !overrideInput
+        && state.resolved
+        && (output === 'text' || (output !== 'text' && $('transcription').checked))
+        && $('transcriptFallback').value === 'assemblyai_transcripts';
+      const hours = totalDurationSeconds() / 3600;
+      if (usesAssembly && hours > 10) {
+        toast('AssemblyAI exports over 10 hours are blocked. Reduce the batch or channel size first.');
+        updateAssemblyWarning();
+        return;
+      }
+      $('startBtn').disabled = true;
+      $('startBtn').textContent = 'Starting...';
+      $('jobStatus').classList.remove('hidden');
+      $('jobStatus').classList.add('running');
+      $('jobMessage').textContent = 'Starting export';
+      $('jobProgress').style.width = '2%';
+      $('jobArtifacts').innerHTML = '';
 
       try {
-        const res = await fetch('/api/download', {
+        const res = await fetch('/api/jobs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: c.url,
-            format: currentFormat,
-            format_id: c.selectedFormatId,
-            title: c.title || '',
-          }),
+          body: JSON.stringify(buildConfig(overrideInput)),
         });
         const data = await res.json();
-        if (data.error) {
-          c.status = 'error';
-          c.error = data.error;
-          renderCard(idx);
-          return;
-        }
-        c.jobId = data.job_id;
-        pollCard(idx);
+        if (!res.ok || data.error) throw new Error(data.error || 'Could not start job');
+        toast('Export queued. Artifacts will appear as they land.');
+        pollJob(data.job_id);
       } catch (err) {
-        c.status = 'error';
-        c.error = err.message;
-        renderCard(idx);
+        $('jobStatus').classList.remove('running');
+        $('jobMessage').innerHTML = `<span class="error">${esc(friendlyError(err.message))}</span>`;
+        $('startBtn').disabled = false;
+        $('startBtn').textContent = 'Start Export';
       }
     }
 
-    function pollCard(idx) {
-      const c = cardData[idx];
-      const iv = setInterval(async () => {
+    function pollJob(jobId) {
+      clearInterval(state.poll);
+      const tick = async () => {
         try {
-          const res = await fetch(`/api/status/${c.jobId}`);
-          const data = await res.json();
-          if (data.status === 'done') {
-            clearInterval(iv);
-            c.status = 'done';
-            c.filename = data.filename;
-            renderCard(idx);
-            saveCard(idx);
-          } else if (data.status === 'error') {
-            clearInterval(iv);
-            c.status = 'error';
-            c.error = data.error;
-            renderCard(idx);
+          const res = await fetch(`/api/jobs/${jobId}`);
+          const job = await res.json();
+          state.job = job;
+          renderJob(job);
+          if (['done', 'partial', 'error'].includes(job.status)) {
+            clearInterval(state.poll);
+            $('jobStatus').classList.remove('running');
+            $('startBtn').disabled = false;
+            $('startBtn').textContent = state.resolved?.kind === 'channel' ? 'Start Channel Export' : 'Start Export';
+            if (job.status === 'error') {
+              toast('Export stopped. The error details are on the run desk.');
+            } else if (state.lastCelebratedJob !== job.id) {
+              state.lastCelebratedJob = job.id;
+              celebrate();
+              toast(job.status === 'partial' ? 'Run finished with a few bruises. Good artifacts are ready.' : 'Export complete. ZIP and artifacts are ready.');
+            }
           }
-        } catch {
-          clearInterval(iv);
-          c.status = 'error';
-          c.error = 'Lost connection to server';
-          renderCard(idx);
+        } catch (err) {
+          clearInterval(state.poll);
+          $('jobStatus').classList.remove('running');
+          $('jobMessage').innerHTML = `<span class="error">Lost connection to server</span>`;
         }
-      }, 1000);
+      };
+      tick();
+      state.poll = setInterval(tick, 1000);
     }
 
-    function saveCard(idx) {
-      const c = cardData[idx];
-      if (!c.jobId) return;
-      const a = document.createElement('a');
-      a.href = `/api/file/${c.jobId}`;
-      a.download = c.filename || '';
-      a.click();
-    }
-
-    async function dlAll() {
-      const btn = document.querySelector('.dl-all-btn');
-      if (btn) { btn.disabled = true; btn.textContent = 'Downloading...'; }
-
-      for (let i = 0; i < cardData.length; i++) {
-        if (cardData[i].status === 'ready') {
-          await dlCard(i);
-        }
+    function renderJob(job) {
+      $('jobMessage').textContent = `${job.stage}: ${job.message}`;
+      $('jobProgress').style.width = `${Math.max(2, job.progress || 0)}%`;
+      const artifactLinks = [];
+      if (job.zip_available) artifactLinks.push(`<a class="mini hot" href="/api/jobs/${job.id}/zip">Download ZIP</a>`);
+      for (const artifact of job.artifacts || []) {
+        artifactLinks.push(`<a class="mini good" href="/api/jobs/${job.id}/artifacts/${artifact.id}">${esc(artifact.filename)}</a>`);
       }
+      $('jobArtifacts').innerHTML = artifactLinks.join('');
 
-      if (btn) { btn.disabled = false; btn.textContent = 'Download All'; }
+      if (job.items && job.items.length) {
+        const signature = JSON.stringify({
+          items: job.items.map(item => ({
+            id: item.id,
+            status: item.status,
+            error: item.error || '',
+            title: item.title || '',
+            duration: item.duration || 0,
+          })),
+          artifacts: (job.artifacts || []).map(a => `${a.id}:${a.item_id}:${a.kind}`).sort(),
+        });
+        if (signature === state.lastRenderedItemsSignature) return;
+        state.lastRenderedItemsSignature = signature;
+        $('cards').innerHTML = job.items.map(item => {
+          const related = (job.artifacts || []).filter(a => a.item_id === item.id);
+          const statusClass = item.status === 'error' ? 'bad' : item.status === 'done' ? 'good' : '';
+          return `
+            <article class="card">
+              <div class="thumb">${item.thumbnail ? `<img src="${esc(item.thumbnail)}" alt="">` : `<span>${esc((item.id || 'media').slice(0, 6))}</span>`}</div>
+              <div>
+                <h3>${esc(item.title || 'Untitled')}</h3>
+                <div class="meta">${esc(item.uploader || '')}${item.duration ? ' · ' + fmtDur(item.duration) : ''}</div>
+                <div class="card-actions">
+                  <span class="mini ${statusClass}">${esc(item.status)}</span>
+                  ${item.error ? `<span class="mini bad">${esc(friendlyError(item.error))}</span>` : ''}
+                  ${related.map(a => `<a class="mini good" href="/api/jobs/${job.id}/artifacts/${a.id}">${esc(a.kind)}</a>`).join('')}
+                </div>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
     }
+
+    function clearAll() {
+      cancelPendingAnalyze();
+      $('sourceInput').value = '';
+      state.resolved = null;
+      state.job = null;
+      state.selectedFormats = {};
+      state.lastCelebratedJob = null;
+      state.lastRenderedItemsSignature = '';
+      clearInterval(state.poll);
+      $('cards').innerHTML = emptyState('Desk is clean', 'Paste links, a YouTube handle, or a channel ID. ReClip will detect the workflow and keep the noisy controls out of the way.');
+      $('summary').textContent = 'No input analyzed yet.';
+      $('modeNote').textContent = 'Analyze input to unlock smart options.';
+      setParamsReady(false);
+      $('clipStart').value = '';
+      $('clipEnd').value = '';
+      $('exportPreview').classList.add('hidden');
+      $('exportPreview').innerHTML = '';
+      $('formatPickerRows').innerHTML = '';
+      $('jobStatus').classList.add('hidden');
+      $('jobStatus').classList.remove('running');
+      $('startBtn').disabled = true;
+      toast('Desk cleared.');
+      syncOptions();
+    }
+
+    document.querySelector('.brand h1').addEventListener('dblclick', () => {
+      toast('Local-first, artifact-heavy, cloud-light. Good console.');
+    });
+    $('singleModeBtn').addEventListener('click', () => setInputMode('single'));
+    $('batchModeBtn').addEventListener('click', () => setInputMode('batch'));
+    $('analyzeBtn').addEventListener('click', analyze);
+    $('clearBtn').addEventListener('click', clearAll);
+    $('startBtn').addEventListener('click', () => startJob());
+    document.addEventListener('click', event => {
+      const button = event.target.closest('.export-one');
+      if (button) startJob(button.dataset.exportUrl);
+    });
+    document.addEventListener('change', event => {
+      const select = event.target.closest('.format-select');
+      if (select) state.selectedFormats[select.dataset.itemId] = select.value;
+    });
+    $('outputFormat').addEventListener('change', syncOptions);
+    $('transcription').addEventListener('change', syncOptions);
+    $('transcriptFallback').addEventListener('change', syncOptions);
+    $('sourceInput').addEventListener('paste', () => scheduleAnalyze(600));
+    $('sourceInput').addEventListener('input', () => scheduleAnalyze(600));
+    $('sourceInput').addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        analyze({ immediate: true });
+      }
+    });
+
+    setInputMode('single');
+    loadCapabilities();
+    syncOptions();
   </script>
+  {% if dev_reload %}
+  <script>
+    (() => {
+      let currentVersion = null;
+      async function checkForReload() {
+        try {
+          const res = await fetch('/api/dev/reload-version', { cache: 'no-store' });
+          if (!res.ok) return;
+          const data = await res.json();
+          if (currentVersion && data.version !== currentVersion) window.location.reload();
+          currentVersion = data.version;
+        } catch {}
+      }
+      checkForReload();
+      setInterval(checkForReload, 700);
+    })();
+  </script>
+  {% endif %}
 </body>
+
 </html>
